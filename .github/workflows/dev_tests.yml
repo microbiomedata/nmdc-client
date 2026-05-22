@@ -49,7 +49,7 @@ jobs:
             await github.rest.issues.create({
               owner,
               repo,
-              title: "notebook_api_utilities dev tests failed",
+              title: "nmdc-client dev tests failed",
               body: "The dev tests have failed in the latest run. Please investigate the issue.",
               labels: ["report", "automated issue"]
             });
