@@ -1,5 +1,5 @@
 NMDC Client Documentation
-=================================
+=========================
 
 NMDC Client is a Python package for interacting with selected endpoints of the `NMDC Runtime API <https://api.microbiomedata.org/docs>`_.
 It supports querying public NMDC metadata and, for authorized users, working with privileged submission and staging endpoints.
