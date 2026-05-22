@@ -2,11 +2,13 @@
 import logging
 
 from nmdc_client.config import API_BASE_URL
+from nmdc_client.decorators import has_deprecated_parameter
 from nmdc_client.functional_search import FunctionalSearch
 
 logger = logging.getLogger(__name__)
 
 
+@has_deprecated_parameter("env", reason="Use ``api_base_url`` instead.")
 class FunctionalAnnotationAggSearch(FunctionalSearch):
     """
     Class to interact with the NMDC API to search for records within the ``functional_annotation_agg`` collection.
