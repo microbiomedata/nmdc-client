@@ -1,7 +1,10 @@
-NMDC API Utilities Documentation
+NMDC Client Documentation
 =================================
 
-NMDC API Utilities provides Python interfaces for querying public NMDC metadata and, for authorized users, working with privileged submission and staging endpoints.
+NMDC Client is a Python package for interacting with selected endpoints of the `NMDC Runtime API <https://api.microbiomedata.org/docs>`_.
+It supports querying public NMDC metadata and, for authorized users, working with privileged submission and staging endpoints.
+
+NMDC Client is published on PyPI as ``nmdc-client`` and imported in Python as ``nmdc_client``.
 
 .. toctree::
    :maxdepth: 1
