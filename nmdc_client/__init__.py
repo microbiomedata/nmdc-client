@@ -8,6 +8,7 @@ Reference: https://realpython.com/python-init-py/#what-kind-of-code-should-i-put
 """
 
 from importlib.metadata import PackageNotFoundError, version
+from pkgutil import iter_modules
 from typing import Optional
 
 
@@ -33,38 +34,18 @@ def get_package_version(package_name: str) -> Optional[str]:
 _version = get_package_version("nmdc-client")
 __version__ = _version if _version is not None else "0.0.0"
 
-# Enumeration of every submodule shipped by this package. Consumed by the
-# `nmdc-api-utilities` backwards-compatibility shim to alias each submodule
-# (e.g. `nmdc_api_utilities.config` → `nmdc_client.config`) via `sys.modules`.
-__all_modules__ = (
-    "api_client",
-    "auth",
-    "biosample_search",
-    "calibration_search",
-    "collecting_biosamples_from_site_search",
-    "collection_search",
-    "config",
-    "configuration_search",
-    "data_generation_search",
-    "data_object_search",
-    "data_processing",
-    "data_staging",
-    "decorators",
-    "field_research_site_search",
-    "functional_annotation_agg_search",
-    "functional_search",
-    "instrument_search",
-    "lat_long_filters",
-    "manifest_search",
-    "material_processing_search",
-    "metadata",
-    "minter",
-    "nmdc_search",
-    "processed_sample_search",
-    "storage_process_search",
-    "study_search",
-    "utils",
-    "workflow_execution_search",
+# Names of every submodule shipped by this package. Consumed by the
+# `nmdc-api-utilities` backwards-compatibility shim, which aliases each
+# submodule under the old dotted path (e.g. `nmdc_api_utilities.config` →
+# `nmdc_client.config`) via `sys.modules`. Discovered at import time via
+# `pkgutil.iter_modules` so new submodules are picked up automatically; the
+# `not m.ispkg` filter excludes the `test/` subpackage.
+__all_modules__: tuple[str, ...] = tuple(
+    sorted(
+        m.name
+        for m in iter_modules(__path__)
+        if not m.ispkg and not m.name.startswith("_")
+    )
 )
 
 from nmdc_client.biosample_search import BiosampleSearch

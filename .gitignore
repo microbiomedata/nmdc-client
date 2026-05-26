@@ -1,7 +1,5 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-nmdc_client/__pycache__/
-nmdc_client/test/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -164,7 +162,6 @@ cython_debug/
 #.idea/
 
 # Sphinx documentation
-src/nmdc-client/docs/_build/
 package.zsh
 
 # Additional dev-related files
