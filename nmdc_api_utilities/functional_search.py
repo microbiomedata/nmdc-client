@@ -74,8 +74,6 @@ class FunctionalSearch(CollectionSearch):
 
         filter = f'{{"gene_function_id": "{formatted_annotation_type}"}}'
 
-        result = self.get_record_by_filter(
-            filter, page_size, fields, all_pages, shape="records"
-        )
+        result = self.get_record_by_filter(filter, page_size, fields, all_pages)
         records = cast(list[dict], result)
         return records

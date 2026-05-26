@@ -2,7 +2,6 @@
 import logging
 import unittest
 
-import pandas as pd
 import pytest
 
 from nmdc_api_utilities.collection_search import CollectionSearch
@@ -25,12 +24,22 @@ class TestCollection(unittest.TestCase):
         )
         assert len(results) == 10
 
-    def test_get_records_dataframe(self):
-        # simple test to check if the get_records method returns a pandas dataframe
+    def test_shape_parameter_removed(self):
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
-        results = collection.get_records(max_page_size=10, shape="dataframe")
-        assert isinstance(results, pd.DataFrame)
-        assert len(results) == 10
+        with pytest.raises(TypeError):
+            collection.get_records(shape="records")
+        with pytest.raises(TypeError):
+            collection.get_record_by_filter(
+                filter='{"id": "nmdc:sty-11-8fb6t785"}', shape="records"
+            )
+        with pytest.raises(TypeError):
+            collection.get_record_by_attribute(
+                "name",
+                "Lab enrichment of tropical soil microbial communities from Luquillo Experimental Forest, Puerto Rico",
+                shape="records",
+            )
+        with pytest.raises(TypeError):
+            collection.get_record_by_id(record_id="nmdc:sty-11-8fb6t785", shape="records")
 
     def test_get_record_by_filter(self):
         # simple test to check if the get_record_by_filter method returns a record

@@ -2,9 +2,10 @@
 import json
 import logging
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import pandas as pd
+if TYPE_CHECKING:
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,18 @@ class DataProcessing:
     def __init__(self):
         pass
 
-    def convert_to_df(self, data: list[dict[str, Any]]) -> pd.DataFrame:
+    @staticmethod
+    def _import_pandas():
+        try:
+            import pandas as pd
+        except ImportError as error:
+            raise ImportError(
+                "pandas is required for DataProcessing dataframe utilities. "
+                "Install pandas to use these methods."
+            ) from error
+        return pd
+
+    def convert_to_df(self, data: list[dict[str, Any]]) -> "pd.DataFrame":
         """
         Convert a list of dictionaries to a pandas dataframe.
 
@@ -27,6 +39,7 @@ class DataProcessing:
         pd.DataFrame
             A pandas dataframe representation of the input dictionaries.
         """
+        pd = self._import_pandas()
         return pd.DataFrame(data)
 
     def split_list(
@@ -53,8 +66,8 @@ class DataProcessing:
         return result
 
     def rename_columns(
-        self, df: pd.DataFrame, new_col_names: list[str]
-    ) -> pd.DataFrame:
+        self, df: "pd.DataFrame", new_col_names: list[str]
+    ) -> "pd.DataFrame":
         """
         Rename columns in a pandas dataframe.
 
@@ -78,8 +91,8 @@ class DataProcessing:
         return df
 
     def merge_dataframes(
-        self, column: str, df1: pd.DataFrame, df2: pd.DataFrame
-    ) -> pd.DataFrame:
+        self, column: str, df1: "pd.DataFrame", df2: "pd.DataFrame"
+    ) -> "pd.DataFrame":
         """
         Merge two dataframes.
 
@@ -99,15 +112,16 @@ class DataProcessing:
         pd.DataFrame
             A pandas dataframe with the merged data.
         """
+        pd = self._import_pandas()
         return pd.merge(df1, df2, on=column, how="inner")
 
     def merge_df(
         self,
-        df1: pd.DataFrame,
-        df2: pd.DataFrame,
+        df1: "pd.DataFrame",
+        df2: "pd.DataFrame",
         key1: str,
         key2: str,
-    ) -> pd.DataFrame:
+    ) -> "pd.DataFrame":
         """
         Merges two dataframes using an inner join based on specified keys, automatically exploding list-like columns and removing duplicates.
 
@@ -141,6 +155,7 @@ class DataProcessing:
         df2 = identify_and_explode(df2)
 
         # Merge dataframes
+        pd = self._import_pandas()
         merged_df = pd.merge(df1, df2, left_on=key1, right_on=key2)
         # Drop any duplicated rows
         merged_df.drop_duplicates(keep="first", inplace=True)

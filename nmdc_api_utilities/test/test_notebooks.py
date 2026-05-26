@@ -40,6 +40,4 @@ def test_nom_notebook():
         dataobject["analysis_has_input"] = dataobject.pop("has_input")
         dataobject["analysis_has_output"] = dataobject.pop("has_output")
 
-    # convert to data frame
-    analysis_dataobj_df = dp_client.convert_to_df(analysis_dataobj)
-    assert analysis_dataobj_df.shape[0] > 2000
+    assert len(analysis_dataobj) > 2000

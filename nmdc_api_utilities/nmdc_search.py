@@ -259,7 +259,6 @@ class NMDCSearch(NMDCAPIClient):
                 id_list=id_list,
                 search_field="id",
                 fields=fields,
-                shape="records",
             )
             records = cast(list[dict], records)
             resources.extend(records)
