@@ -129,7 +129,7 @@ Most users will only need the public search clients above. A separate privileged
 
 If you were previously installing `nmdc-api-utilities`, both of the following will continue to work:
 
-- `pip install nmdc-api-utilities` — installs the tombstone shim, which pulls in `nmdc-client` and emits a `DeprecationWarning`.
+- `pip install nmdc-api-utilities` — installs the [tombstone](https://en.wikipedia.org/wiki/Tombstone_(programming)) shim, which pulls in `nmdc-client` and emits a `DeprecationWarning`.
 - `from nmdc_api_utilities import ...` and `from nmdc_api_utilities.<submodule> import ...` — still resolve, with a `DeprecationWarning`.
 
 To migrate fully:
