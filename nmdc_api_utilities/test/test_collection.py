@@ -39,7 +39,9 @@ class TestCollection(unittest.TestCase):
                 shape="records",
             )
         with pytest.raises(TypeError):
-            collection.get_record_by_id(record_id="nmdc:sty-11-8fb6t785", shape="records")
+            collection.get_record_by_id(
+                record_id="nmdc:sty-11-8fb6t785", shape="records"
+            )
 
     def test_get_record_by_filter(self):
         # simple test to check if the get_record_by_filter method returns a record
