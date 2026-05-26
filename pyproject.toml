@@ -13,7 +13,7 @@ module-root = ""
 name = "nmdc-client"
 # Version is managed by GitHub releases and synced to PyPI - so this is just a placeholder that gets replaced during the release process.
 version = "0.0.0"
-description = "Python client library for the NMDC APIs (formerly nmdc-api-utilities)"
+description = "Python client library for the NMDC API (formerly nmdc-api-utilities)"
 authors = [
     { name = "Olivia Hess", email = "olivia.hess@pnnl.gov" },
 ]
