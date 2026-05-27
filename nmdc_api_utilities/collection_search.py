@@ -183,7 +183,9 @@ class CollectionSearch(NMDCSearch):
         results = self.get_records(filter, max_page_size, fields, all_pages)
         return results
 
-    def build_filter(self, attributes: dict[str, str], exact_match: bool = False) -> str:
+    def build_filter(
+        self, attributes: dict[str, str], exact_match: bool = False
+    ) -> str:
         """
         Build a MongoDB filter string from one or more attributes.
 
@@ -210,7 +212,6 @@ class CollectionSearch(NMDCSearch):
                 filter_dict[attribute_name] = {"$regex": escaped_value, "$options": "i"}
 
         return json.dumps(filter_dict, separators=(",", ":"))
-
 
     @has_deprecated_parameter("collection_id", reason="Use ``record_id`` instead.")
     def get_record_by_id(
