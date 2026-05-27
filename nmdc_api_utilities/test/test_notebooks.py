@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from nmdc_api_utilities import DataObjectSearch, DataProcessing, WorkflowExecutionSearch
+from nmdc_api_utilities import DataObjectSearch, WorkflowExecutionSearch
 from nmdc_api_utilities.config import API_BASE_URL
 
 
 def test_nom_notebook():
     dos_client = DataObjectSearch(api_base_url=API_BASE_URL)
 
-    dp_client = DataProcessing()
     processed_nom = dos_client.get_record_by_attribute(
         attribute_name="data_object_type",
         attribute_value="Direct Infusion FT-ICR MS Analysis Results",
@@ -25,7 +24,7 @@ def test_nom_notebook():
     # since we are querying the WorkflowExecution collection, we need to create an instance of it
     we_client = WorkflowExecutionSearch(api_base_url=API_BASE_URL)
     # use utility function to get a list of the ids from processed_nom
-    result_ids = dp_client.extract_field(processed_nom, "processed_nom_id")
+    result_ids = [data_object["processed_nom_id"] for data_object in processed_nom]
     # get the analysis data objects
     analysis_dataobj = we_client.get_batch_records(
         id_list=result_ids,

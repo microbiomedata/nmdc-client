@@ -8,7 +8,6 @@ from typing import Optional, cast
 import requests
 
 from nmdc_api_utilities.config import API_BASE_URL
-from nmdc_api_utilities.data_processing import DataProcessing
 from nmdc_api_utilities.decorators import has_deprecated_parameter
 from nmdc_api_utilities.nmdc_search import NMDCSearch
 
@@ -349,11 +348,10 @@ class CollectionSearch(NMDCSearch):
                 f"get_record_by_id is not supported for the {self.collection_name} collection"
             )
 
-        dp = DataProcessing()
         results: list[dict] = []
         id_list = list(set(id_list))
-        chunks = dp.split_list(input_list=id_list, chunk_size=chunk_size)
-        for chunk in chunks:
+        for i in range(0, len(id_list), chunk_size):
+            chunk = id_list[i : i + chunk_size]
             sanitized_chunk = json.dumps(chunk)
             filter = f'{{"{search_field}": {{"$in": {sanitized_chunk}}}}}'
             res = self.get_records(
