@@ -75,6 +75,9 @@ class TestCollection(unittest.TestCase):
             attributes={"name": "GC-MS (2009)"},
             exact_match=False,
         )
+        assert partial_filter == (
+            '{"name":{"$regex":"GC\\\\-MS\\\\ \\\\(2009\\\\)","$options":"i"}}'
+        )
         assert json.loads(partial_filter) == {
             "name": {"$regex": r"GC\-MS\ \(2009\)", "$options": "i"}
         }

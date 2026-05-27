@@ -209,7 +209,7 @@ class CollectionSearch(NMDCSearch):
                 escaped_value = re.sub(r"([\W])", r"\\\1", attribute_value)
                 filter_dict[attribute_name] = {"$regex": escaped_value, "$options": "i"}
 
-        return json.dumps(filter_dict)
+        return json.dumps(filter_dict, separators=(",", ":"))
 
 
     @has_deprecated_parameter("collection_id", reason="Use ``record_id`` instead.")
