@@ -53,7 +53,7 @@ class CollectionSearch(NMDCSearch):
         filter: str = "",
         max_page_size: int = 100,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve records from the collection via the NMDC API.
@@ -67,7 +67,7 @@ class CollectionSearch(NMDCSearch):
         fields
             The fields to return. An empty string will return all fields.
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
         Returns
         -------
         list[dict]
@@ -114,7 +114,7 @@ class CollectionSearch(NMDCSearch):
         filter: str,
         max_page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve a record via the NMDC API using a specified filter.
@@ -131,7 +131,7 @@ class CollectionSearch(NMDCSearch):
             The fields to return. Default will return all fields.
             Example: "id,name,description,url,type"
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
         Returns
         -------
         list[dict]
@@ -147,7 +147,7 @@ class CollectionSearch(NMDCSearch):
         attribute_value: str,
         max_page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
         exact_match: bool = False,
     ) -> list[dict]:
         """
@@ -164,7 +164,7 @@ class CollectionSearch(NMDCSearch):
         fields
             The fields to return. If empty, all fields are returned.
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
         exact_match
             Whether the attribute value should be matched exactly or partially.
             Used to determine if the inputted attribute value is an exact match or a partial match.

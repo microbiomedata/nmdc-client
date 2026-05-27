@@ -19,7 +19,7 @@ class LatLongFilters(ABC):
         filter: str = "",
         max_page_size: int = 100,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """Retrieve records from a collection via the NMDC API."""
 
@@ -29,7 +29,7 @@ class LatLongFilters(ABC):
         latitude: float,
         page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve records by latitude filter via the NMDC API.
@@ -46,7 +46,7 @@ class LatLongFilters(ABC):
             The fields to return. Default is all fields.
             Example: "id,name,description,type"
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
 
         Returns
         -------
@@ -88,7 +88,7 @@ class LatLongFilters(ABC):
         longitude: float,
         page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve records by longitude filter via the NMDC API.
@@ -105,7 +105,7 @@ class LatLongFilters(ABC):
             The fields to return. If empty, all fields are returned.
             Example: "id,name,description,type"
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
 
         Returns
         -------
@@ -147,7 +147,7 @@ class LatLongFilters(ABC):
         longitude: float,
         page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve records by latitude and longitude filters via the NMDC API.
@@ -168,7 +168,7 @@ class LatLongFilters(ABC):
             The fields to return. If empty, all fields are returned.
             Example: "id,name,description,type"
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
 
         Returns
         -------
@@ -266,7 +266,7 @@ class LatLongFilters(ABC):
         query_lon: float | None = None,
         page_size: int = 25,
         fields: str = "",
-        all_pages: bool = False,
+        all_pages: bool = True,
     ) -> list[dict]:
         """
         Retrieve records by proximity to a record or lat lon via the NMDC API.
@@ -290,7 +290,7 @@ class LatLongFilters(ABC):
             The fields to return. If empty, all fields are returned.
             Example: "id,name,description,type"
         all_pages
-            True to return all pages. False to return the first page.
+            True to return all pages. False to return only the first page.
 
         Returns
         -------

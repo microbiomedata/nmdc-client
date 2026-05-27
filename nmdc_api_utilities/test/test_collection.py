@@ -18,7 +18,7 @@ class TestCollection(unittest.TestCase):
     def test_get_records(self):
         # simple test to check if the get_records method returns a list of records
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
-        results = collection.get_records(max_page_size=10)
+        results = collection.get_records(max_page_size=10, all_pages=False)
         assert isinstance(results, list) and all(
             isinstance(item, dict) for item in results
         )
