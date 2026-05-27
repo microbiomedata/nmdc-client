@@ -11,7 +11,7 @@ def test_find_biosample_by_id():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
     results = biosample.get_record_by_id("nmdc:bsm-11-002vgm56")
     assert len(results) > 0
-    assert results["id"] == "nmdc:bsm-11-002vgm56"
+    assert results[0]["id"] == "nmdc:bsm-11-002vgm56"
 
 
 def test_logger():

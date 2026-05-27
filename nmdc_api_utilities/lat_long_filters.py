@@ -80,7 +80,7 @@ class LatLongFilters(ABC):
         filter = f'{{"lat_lon.latitude": {{"${comparison}": {latitude}}}}}'
 
         result = self.get_records(filter, page_size, fields, all_pages)
-        return cast(list[dict], result)
+        return result
 
     def get_record_by_longitude(
         self,
@@ -137,7 +137,7 @@ class LatLongFilters(ABC):
             )
         filter = f'{{"lat_lon.longitude": {{"${comparison}": {longitude}}}}}'
         result = self.get_records(filter, page_size, fields, all_pages)
-        return cast(list[dict], result)
+        return result
 
     def get_record_by_lat_long(
         self,
@@ -208,7 +208,7 @@ class LatLongFilters(ABC):
             )
         filter = f'{{"lat_lon.latitude": {{"${lat_comparison}": {latitude}}}, "lat_lon.longitude": {{"${long_comparison}": {longitude}}}}}'
         results = self.get_records(filter, page_size, fields, all_pages)
-        return cast(list[dict], results)
+        return results
 
     @staticmethod
     def _bounding_box(center_lat: float, center_lon: float, radius_m: float):

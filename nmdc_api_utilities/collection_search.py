@@ -3,7 +3,7 @@
 import json
 import logging
 import re
-from typing import Optional, cast
+from typing import Optional
 
 import requests
 
@@ -219,7 +219,7 @@ class CollectionSearch(NMDCSearch):
         max_page_size: int = 100,
         fields: str = "",
         collection_id: Optional[str] = None,
-    ) -> dict:
+    ) -> list[dict]:
         """
         Retrieve a record from the collection via the NMDC API using a specified ID.
 
@@ -235,8 +235,8 @@ class CollectionSearch(NMDCSearch):
             The id of the record to retrieve from the collection. This parameter is deprecated and will be removed in a future version. Please use record_id instead.
         Returns
         -------
-        dict
-            A dictionary containing the record.
+        list[dict]
+            A list containing the record.
 
         Raises
         ------
@@ -281,6 +281,8 @@ class CollectionSearch(NMDCSearch):
                 f"API request response: {response.json()}\n API Status Code: {response.status_code}"
             )
         results = response.json()
+        if isinstance(results, dict):
+            return [results]
         return results
 
     def check_ids_exist(
@@ -328,7 +330,6 @@ class CollectionSearch(NMDCSearch):
                 max_page_size=len(chunk),
                 fields="id",
             )
-            results = cast(list[dict], results)
             if len(results) != len(chunk) and return_missing_ids:
                 missing_ids = list(
                     set(chunk) - set([record["id"] for record in results])
@@ -382,7 +383,6 @@ class CollectionSearch(NMDCSearch):
             res = self.get_records(
                 filter=filter, max_page_size=len(chunk), fields=fields, all_pages=True
             )
-            res = cast(list[dict], res)
             results += res
         return results
 

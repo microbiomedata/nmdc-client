@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from typing import Any, cast
+from typing import Any
 
 import requests
 
@@ -260,7 +260,6 @@ class NMDCSearch(NMDCAPIClient):
                 search_field="id",
                 fields=fields,
             )
-            records = cast(list[dict], records)
             resources.extend(records)
         return resources
 

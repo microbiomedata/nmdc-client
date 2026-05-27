@@ -86,7 +86,7 @@ class TestCollection(unittest.TestCase):
         # simple test to check if the get_record_by_id method returns a record
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
         results = collection.get_record_by_id("nmdc:sty-11-8fb6t785")
-        assert results["id"] == "nmdc:sty-11-8fb6t785"
+        assert results[0]["id"] == "nmdc:sty-11-8fb6t785"
 
     def test_get_record_by_id_params(self):
         # simple test to check if the get_record_by_id method returns a record for the two id parameters (record_id (current), collection_id (deprecated))
@@ -96,12 +96,12 @@ class TestCollection(unittest.TestCase):
             results_collect_id = collection.get_record_by_id(
                 collection_id="nmdc:sty-11-8fb6t785"
             )
-        assert results_collect_id["id"] == "nmdc:sty-11-8fb6t785"
+        assert results_collect_id[0]["id"] == "nmdc:sty-11-8fb6t785"
 
         results_record_id = collection.get_record_by_id(
             record_id="nmdc:sty-11-8fb6t785"
         )
-        assert results_record_id["id"] == "nmdc:sty-11-8fb6t785"
+        assert results_record_id[0]["id"] == "nmdc:sty-11-8fb6t785"
 
         with pytest.raises(ValueError, match="Both.*record_id.*collection_id"):
             collection.get_record_by_id(
