@@ -132,6 +132,8 @@ If you were previously installing `nmdc-api-utilities`, both of the following wi
 - `pip install nmdc-api-utilities` — installs the [tombstone](https://en.wikipedia.org/wiki/Tombstone_(programming)) shim, which pulls in `nmdc-client` and emits a `DeprecationWarning`.
 - `from nmdc_api_utilities import ...` and `from nmdc_api_utilities.<submodule> import ...` — still resolve, with a `DeprecationWarning`.
 
+`nmdc-api-utilities` 0.7.0 is the **final release of that distribution name** — we won't be republishing it. The shim is frozen at the API surface that existed at the time of the rename: existing submodules will keep tracking the latest `nmdc-client` 1.x (so bug fixes and improvements to those submodules reach you transparently), but any **new** submodule added to future `nmdc-client` releases will only be accessible under the new name. To pick up new functionality, you'll need to migrate.
+
 To migrate fully:
 
 ```bash
