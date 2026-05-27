@@ -174,18 +174,43 @@ class CollectionSearch(NMDCSearch):
             A list of dictionaries containing the records.
 
         """
+        filter = self.build_filter(
+            attributes={attribute_name: attribute_value},
+            exact_match=exact_match,
+        )
 
-        if exact_match:
-            filter = f'{{"{attribute_name}":"{attribute_value}"}}'
-        else:
-            # escape special characters - mongo db filters require special characters to be double escaped ex. GC\\-MS \\(2009\\)
-            escaped_value = re.sub(r"([\W])", r"\\\\\1", attribute_value)
-            filter = (
-                f'{{"{attribute_name}":{{"$regex":"{escaped_value}","$options":"i"}}}}'
-            )
         logging.debug(f"get_record_by_attribute Filter: {filter}")
         results = self.get_records(filter, max_page_size, fields, all_pages)
         return results
+
+    def build_filter(self, attributes: dict[str, str], exact_match: bool = False) -> str:
+        """
+        Build a MongoDB filter string from one or more attributes.
+
+        Parameters
+        ----------
+        attributes
+            Dictionary of attribute names and their corresponding values.
+        exact_match
+            Whether attribute values should be exact matches.
+
+        Returns
+        -------
+        str
+            A string representing the MongoDB filter.
+        """
+        filter_dict: dict[str, str | dict[str, str]] = {}
+        if exact_match:
+            for attribute_name, attribute_value in attributes.items():
+                filter_dict[attribute_name] = attribute_value
+        else:
+            for attribute_name, attribute_value in attributes.items():
+                # escape special characters - mongo db filters require special characters to be double escaped ex. GC\\-MS \\(2009\\)
+                escaped_value = re.sub(r"([\W])", r"\\\1", attribute_value)
+                filter_dict[attribute_name] = {"$regex": escaped_value, "$options": "i"}
+
+        return json.dumps(filter_dict)
+
 
     @has_deprecated_parameter("collection_id", reason="Use ``record_id`` instead.")
     def get_record_by_id(

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 import unittest
 
@@ -60,6 +61,23 @@ class TestCollection(unittest.TestCase):
             "Lab enrichment of tropical soil microbial communities from Luquillo Experimental Forest, Puerto Rico",
         )
         assert len(results) == 1
+
+    def test_build_filter(self):
+        collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
+
+        exact_filter = collection.build_filter(
+            attributes={"name": "my record"},
+            exact_match=True,
+        )
+        assert json.loads(exact_filter) == {"name": "my record"}
+
+        partial_filter = collection.build_filter(
+            attributes={"name": "GC-MS (2009)"},
+            exact_match=False,
+        )
+        assert json.loads(partial_filter) == {
+            "name": {"$regex": r"GC\-MS\ \(2009\)", "$options": "i"}
+        }
 
     def test_get_record_by_id(self):
         # simple test to check if the get_record_by_id method returns a record
