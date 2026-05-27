@@ -236,7 +236,8 @@ class CollectionSearch(NMDCSearch):
         Returns
         -------
         list[dict]
-            A list containing the record.
+            A list containing the record. The API typically returns a single dictionary for this
+            endpoint, and this method normalizes that response into a single-item list.
 
         Raises
         ------
