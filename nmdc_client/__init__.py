@@ -8,7 +8,6 @@ Reference: https://realpython.com/python-init-py/#what-kind-of-code-should-i-put
 """
 
 from importlib.metadata import PackageNotFoundError, version
-from pkgutil import iter_modules
 from typing import Optional
 
 
@@ -33,20 +32,6 @@ def get_package_version(package_name: str) -> Optional[str]:
 # (e.g. `api_client`) import `__version__` from this package at import time.
 _version = get_package_version("nmdc-client")
 __version__ = _version if _version is not None else "0.0.0"
-
-# Names of every submodule shipped by this package. Consumed by the
-# `nmdc-api-utilities` backwards-compatibility shim, which aliases each
-# submodule under the old dotted path (e.g. `nmdc_api_utilities.config` →
-# `nmdc_client.config`) via `sys.modules`. Discovered at import time via
-# `pkgutil.iter_modules` so new submodules are picked up automatically; the
-# `not m.ispkg` filter excludes the `test/` subpackage.
-__all_modules__: tuple[str, ...] = tuple(
-    sorted(
-        m.name
-        for m in iter_modules(__path__)
-        if not m.ispkg and not m.name.startswith("_")
-    )
-)
 
 from nmdc_client.biosample_search import BiosampleSearch
 from nmdc_client.calibration_search import CalibrationSearch
