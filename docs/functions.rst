@@ -46,16 +46,6 @@ Provides geospatial helper methods for lat/lon-based filtering and coordinate ha
    :undoc-members:
    :show-inheritance:
 
-Data Processing Utilities
--------------------------
-
-Provides helpers for transforming and reshaping query outputs.
-
-.. autoclass:: nmdc_client.data_processing.DataProcessing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 General Utilities
 -----------------
 

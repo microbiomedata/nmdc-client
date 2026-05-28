@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 import unittest
 
-import pandas as pd
 import pytest
 
 from nmdc_client.collection_search import CollectionSearch
@@ -25,14 +25,28 @@ class TestCollection(unittest.TestCase):
         )
         assert len(results) == 10
 
-    def test_get_records_dataframe(self):
-        # simple test to check if the get_records method returns a pandas dataframe
+    def test_shape_parameter_does_not_exist(self):
+        """
+        Test whether specific methods (still) have a parameter named `shape`.
+        """
+
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
-        results = collection.get_records(
-            max_page_size=10, all_pages=False, shape="dataframe"
-        )
-        assert isinstance(results, pd.DataFrame)
-        assert len(results) == 10
+        with pytest.raises(TypeError):
+            collection.get_records(shape="records")
+        with pytest.raises(TypeError):
+            collection.get_record_by_filter(
+                filter='{"id": "nmdc:sty-11-8fb6t785"}', shape="records"
+            )
+        with pytest.raises(TypeError):
+            collection.get_record_by_attribute(
+                "name",
+                "Lab enrichment of tropical soil microbial communities from Luquillo Experimental Forest, Puerto Rico",
+                shape="records",
+            )
+        with pytest.raises(TypeError):
+            collection.get_record_by_id(
+                record_id="nmdc:sty-11-8fb6t785", shape="records"
+            )
 
     def test_get_record_by_filter(self):
         # simple test to check if the get_record_by_filter method returns a record
@@ -52,11 +66,31 @@ class TestCollection(unittest.TestCase):
         )
         assert len(results) == 1
 
+    def test_build_filter(self):
+        collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
+
+        exact_filter = collection.build_filter(
+            attributes={"name": "my record"},
+            exact_match=True,
+        )
+        assert json.loads(exact_filter) == {"name": "my record"}
+
+        partial_filter = collection.build_filter(
+            attributes={"name": "GC-MS (2009)"},
+            exact_match=False,
+        )
+        assert partial_filter == (
+            '{"name":{"$regex":"GC\\\\-MS\\\\ \\\\(2009\\\\)","$options":"i"}}'
+        )
+        assert json.loads(partial_filter) == {
+            "name": {"$regex": r"GC\-MS\ \(2009\)", "$options": "i"}
+        }
+
     def test_get_record_by_id(self):
         # simple test to check if the get_record_by_id method returns a record
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
         results = collection.get_record_by_id("nmdc:sty-11-8fb6t785")
-        assert results["id"] == "nmdc:sty-11-8fb6t785"
+        assert results[0]["id"] == "nmdc:sty-11-8fb6t785"
 
     def test_get_record_by_id_params(self):
         # simple test to check if the get_record_by_id method returns a record for the two id parameters (record_id (current), collection_id (deprecated))
@@ -66,12 +100,12 @@ class TestCollection(unittest.TestCase):
             results_collect_id = collection.get_record_by_id(
                 collection_id="nmdc:sty-11-8fb6t785"
             )
-        assert results_collect_id["id"] == "nmdc:sty-11-8fb6t785"
+        assert results_collect_id[0]["id"] == "nmdc:sty-11-8fb6t785"
 
         results_record_id = collection.get_record_by_id(
             record_id="nmdc:sty-11-8fb6t785"
         )
-        assert results_record_id["id"] == "nmdc:sty-11-8fb6t785"
+        assert results_record_id[0]["id"] == "nmdc:sty-11-8fb6t785"
 
         with pytest.raises(ValueError, match="Both.*record_id.*collection_id"):
             collection.get_record_by_id(

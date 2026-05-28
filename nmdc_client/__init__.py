@@ -41,7 +41,6 @@ from nmdc_client.collecting_biosamples_from_site_search import (
 from nmdc_client.configuration_search import ConfigurationSearch
 from nmdc_client.data_generation_search import DataGenerationSearch
 from nmdc_client.data_object_search import DataObjectSearch
-from nmdc_client.data_processing import DataProcessing
 from nmdc_client.field_research_site_search import FieldResearchSiteSearch
 from nmdc_client.functional_annotation_agg_search import (
     FunctionalAnnotationAggSearch,
