@@ -8,7 +8,7 @@
 import os
 import sys
 
-from nmdc_api_utilities import __version__
+from nmdc_client import __version__
 
 sys.path.insert(0, os.path.abspath(".."))  # Path to your project root
 
@@ -27,7 +27,7 @@ except (ImportError, OSError):
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "nmdc_api_utilities"
+project = "nmdc_client"
 copyright = "2026, NMDC"
 author = "NMDC"
 release = __version__

@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/nmdc_api_utilities
+      url: https://pypi.org/project/nmdc-client
     permissions:
       # Note: According to the documentation of the `pypa/gh-action-pypi-publish` Action,
       #       the `id-token: write` permission is mandatory for trusted publishing to PyPI.

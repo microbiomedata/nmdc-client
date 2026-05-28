@@ -2,7 +2,7 @@
 
 👍 First of all: Thank you for taking the time to contribute!
 
-The following is a set of guidelines for contributing to the [nmdc_api_utilities](https://github.com/microbiomedata/nmdc_api_utilities) repo. This guide is aimed primarily at the developers, although anyone is welcome to contribute.
+The following is a set of guidelines for contributing to the [nmdc-client](https://github.com/microbiomedata/nmdc-client) repo. This guide is aimed primarily at the developers, although anyone is welcome to contribute.
 
 Unlike other repos for data exploration, the code in this repo is used by many moving parts in the NMDC stack. We strive to hold best and interpretable practices for development, as small changes could impact downstream processes. If you want to experiment with large changes, we suggest forking or meeting with the maintainers first.
 
@@ -40,7 +40,7 @@ Please carefully read NMDC's [Code of Conduct](https://github.com/microbiomedata
 
 ### Reporting issues
 
-Please use the [Issue Tracker](https://github.com/microbiomedata/nmdc_api_utilities/issues/) for reporting problems or suggest enhancements for the package. Issues should be focused and actionable (a PR could close an issue). Complex issues should be broken down into simpler issues where possible.
+Please use the [Issue Tracker](https://github.com/microbiomedata/nmdc-client/issues/) for reporting problems or suggest enhancements for the package. Issues should be focused and actionable (a PR could close an issue). Complex issues should be broken down into simpler issues where possible.
 
 Please review GitHub's overview article,
 ["Tracking Your Work with Issues"][about-issues].
@@ -49,7 +49,7 @@ Please review GitHub's overview article,
 
 ### Making pull requests
 
-See [Pull Requests](https://github.com/microbiomedata/nmdc_api_utilities/pulls/) for all pull requests. Every pull request should be associated with an issue.
+See [Pull Requests](https://github.com/microbiomedata/nmdc-client/pulls/) for all pull requests. Every pull request should be associated with an issue.
 
 Please review GitHub's article, ["About Pull Requests"][about-pulls],
 and make your changes on a [new branch][about-branches].
@@ -240,7 +240,7 @@ class Location:
 To deprecate a _parameter_ of a function or method, use our custom decorator as shown here:
 
 ```py
-from nmdc_api_utilities.decorators import has_deprecated_parameter
+from nmdc_client.decorators import has_deprecated_parameter
 
 
 @has_deprecated_parameter("region", reason="Use ``region_id`` instead.")
@@ -277,14 +277,14 @@ In development, you can build and preview the documentation website locally by r
 command:
 
 ```sh
-uv run --group docs sphinx-autobuild --watch nmdc_api_utilities docs build/html
+uv run --group docs sphinx-autobuild --watch nmdc_client docs build/html
 ```
 
 That will do the following: (a) install the packages listed in the `docs` group in `pyproject.toml`,
 (b) use Sphinx to build the documentation website, (c) launch a web server that serves the
 documentation website, and (d) **automatically rebuild** the documentation website whenever any
 [documentation or code](https://github.com/sphinx-doc/sphinx-autobuild#relevant-sphinx-bugs) file
-within either `nmdc_api_utilities/` or `docs/` changes.
+within either `nmdc_client/` or `docs/` changes.
 
 The documentation website will be accessible at the URL shown on the console (usually
 [`http://127.0.0.1:8000`](http://127.0.0.1:8000)).
@@ -300,7 +300,7 @@ Major refactoring should be scoped with the main developers of the repo.
 
 ## Testing
 
-We use [pytest](https://docs.pytest.org/) as our testing framework. All tests live in the `nmdc_api_utilities/test/` directory.
+We use [pytest](https://docs.pytest.org/) as our testing framework. All tests live in the `nmdc_client/test/` directory.
 
 <a id="running-tests"></a>
 
@@ -315,30 +315,30 @@ uv run pytest
 To run only a specific test file:
 
 ```sh
-uv run pytest nmdc_api_utilities/test/test_collection.py
+uv run pytest nmdc_client/test/test_collection.py
 ```
 
 To run a specific test by name:
 
 ```sh
-uv run pytest nmdc_api_utilities/test/test_collection.py::TestCollection::test_get_records
+uv run pytest nmdc_client/test/test_collection.py::TestCollection::test_get_records
 ```
 
 <a id="the-api_base_url-variable"></a>
 
 ### The `api_base_url` variable
 
-Most methods in this package accept an `api_base_url` parameter that specifies which instance of the NMDC Runtime API to send requests to. At module load time, the `API_BASE_URL` constant in `nmdc_api_utilities/config.py` is resolved from environment variables and is used as the default value throughout the test suite.
+Most methods in this package accept an `api_base_url` parameter that specifies which instance of the NMDC Runtime API to send requests to. At module load time, the `API_BASE_URL` constant in `nmdc_client/config.py` is resolved from environment variables and is used as the default value throughout the test suite.
 
-For our CI/CD testing workflows, we test against both the production and development instances of the NMDC Runtime API. This is configured via environment variables in the GitHub Actions workflow files (`prod_tests.yml` and `dev_tests.yml`), and the logic for resolving which API to target is implemented in `nmdc_api_utilities/config.py`. For any new test you write, you should ensure that it can be run against any API instance by using the `API_BASE_URL` constant as the default value for the `api_base_url` parameter when constructing client objects. This allows the test to be flexible and work in different environments without modification.
+For our CI/CD testing workflows, we test against both the production and development instances of the NMDC Runtime API. This is configured via environment variables in the GitHub Actions workflow files (`prod_tests.yml` and `dev_tests.yml`), and the logic for resolving which API to target is implemented in `nmdc_client/config.py`. For any new test you write, you should ensure that it can be run against any API instance by using the `API_BASE_URL` constant as the default value for the `api_base_url` parameter when constructing client objects. This allows the test to be flexible and work in different environments without modification.
 
 <a id="writing-new-tests"></a>
 
 ### Writing new tests
 
-- Place new test files in `nmdc_api_utilities/test/` and name them `test_<module>.py`.
+- Place new test files in `nmdc_client/test/` and name them `test_<module>.py`.
 - Test functions and methods should be named `test_<what_is_being_tested>`.
-- Import `API_BASE_URL` from `nmdc_api_utilities.config` and pass it as the `api_base_url` argument to any client object you instantiate.
+- Import `API_BASE_URL` from `nmdc_client.config` and pass it as the `api_base_url` argument to any client object you instantiate.
 
 **Mocking privileged API calls**
 
@@ -349,13 +349,13 @@ Use `unittest.mock.patch` (or pytest's `monkeypatch`) to intercept the relevant 
 ```python
 from unittest.mock import MagicMock, patch
 import pytest
-from nmdc_api_utilities.config import API_BASE_URL
-from nmdc_api_utilities.data_staging import JGISequencingProjectAPI
+from nmdc_client.config import API_BASE_URL
+from nmdc_client.data_staging import JGISequencingProjectAPI
 
 
 @pytest.fixture
 def mock_auth():
-    with patch("nmdc_api_utilities.data_staging.NMDCAuth") as mock_auth_class:
+    with patch("nmdc_client.data_staging.NMDCAuth") as mock_auth_class:
         mock_auth_instance = MagicMock()
         mock_auth_instance.get_token.return_value = "fake-token"
         mock_auth_instance.has_credentials.return_value = True

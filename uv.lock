@@ -1073,7 +1073,7 @@ wheels = [
 ]
 
 [[package]]
-name = "nmdc-api-utilities"
+name = "nmdc-client"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [

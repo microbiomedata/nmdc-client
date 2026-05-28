@@ -38,7 +38,7 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           API_BASE_URL: "https://api.microbiomedata.org"  # prod
         # Note: Our baseline pytest CLI options are in the `[tool.pytest]` section of `pyproject.toml`.
-        run: uv run pytest -x nmdc_api_utilities/
+        run: uv run pytest -x nmdc_client/
       - name: Create Issue
         if: failure() && github.event.pull_request == null && github.event_name == 'schedule'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -49,7 +49,7 @@ jobs:
             await github.rest.issues.create({
               owner,
               repo,
-              title: "notebook_api_utilities production tests failed",
+              title: "nmdc-client production tests failed",
               body: "The production tests have failed in the latest run. Please investigate the issue.",
               labels: ["report", "automated issue"]
             });
