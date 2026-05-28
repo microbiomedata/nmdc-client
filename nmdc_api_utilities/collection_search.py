@@ -323,7 +323,7 @@ class CollectionSearch(NMDCSearch):
                 f"check_ids_exist is not supported for the {self.collection_name} collection"
             )
 
-        # chunk the input list of IDs into smaller lists of 100 IDs each
+        # chunk the input list of IDs into smaller lists (each of size `chunk_size`)
         # to avoid the maximum URL length limit
         ids_test = list(set(ids))
         for i in range(0, len(ids_test), chunk_size):
