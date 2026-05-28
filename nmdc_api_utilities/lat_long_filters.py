@@ -2,9 +2,7 @@
 import logging
 import math
 from abc import ABC, abstractmethod
-from typing import Literal, cast
-
-import pandas as pd
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +20,7 @@ class LatLongFilters(ABC):
         max_page_size: int = 100,
         fields: str = "",
         all_pages: bool = True,
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """Retrieve records from a collection via the NMDC API."""
 
     def get_record_by_latitude(
@@ -82,8 +79,8 @@ class LatLongFilters(ABC):
             )
         filter = f'{{"lat_lon.latitude": {{"${comparison}": {latitude}}}}}'
 
-        result = self.get_records(filter, page_size, fields, all_pages, shape="records")
-        return cast(list[dict], result)
+        result = self.get_records(filter, page_size, fields, all_pages)
+        return result
 
     def get_record_by_longitude(
         self,
@@ -139,8 +136,8 @@ class LatLongFilters(ABC):
                 f"Invalid comparison input: {comparison}\n Valid inputs: {allowed_comparisons}"
             )
         filter = f'{{"lat_lon.longitude": {{"${comparison}": {longitude}}}}}'
-        result = self.get_records(filter, page_size, fields, all_pages, shape="records")
-        return cast(list[dict], result)
+        result = self.get_records(filter, page_size, fields, all_pages)
+        return result
 
     def get_record_by_lat_long(
         self,
@@ -210,10 +207,8 @@ class LatLongFilters(ABC):
                 f"Invalid comparison input: {long_comparison}\n Valid inputs: {allowed_comparisons}"
             )
         filter = f'{{"lat_lon.latitude": {{"${lat_comparison}": {latitude}}}, "lat_lon.longitude": {{"${long_comparison}": {longitude}}}}}'
-        results = self.get_records(
-            filter, page_size, fields, all_pages, shape="records"
-        )
-        return cast(list[dict], results)
+        results = self.get_records(filter, page_size, fields, all_pages)
+        return results
 
     @staticmethod
     def _bounding_box(center_lat: float, center_lon: float, radius_m: float):
@@ -332,7 +327,6 @@ class LatLongFilters(ABC):
                 max_page_size=1,
                 fields="lat_lon",
                 all_pages=False,
-                shape="records",
             )
             center_lat = record_lat_lon[0].get("lat_lon", {}).get("latitude")
             center_lon = record_lat_lon[0].get("lat_lon", {}).get("longitude")
@@ -347,7 +341,7 @@ class LatLongFilters(ABC):
         filter = f'{{"lat_lon.latitude": {{"$gte": {min_lat}, "$lte": {max_lat}}},"lat_lon.longitude": {{"$gte": {min_lon}, "$lte": {max_lon}}}}}'
         results = cast(
             list[dict],
-            self.get_records(filter, page_size, fields, all_pages, shape="records"),
+            self.get_records(filter, page_size, fields, all_pages),
         )
 
         # Refine results to those within circular radius

@@ -25,7 +25,7 @@ def test_find_study_by_id():
     st = StudySearch(api_base_url=API_BASE_URL)
     stu = st.get_record_by_id("nmdc:sty-11-8fb6t785")
     assert len(stu) > 0
-    assert stu["id"] == "nmdc:sty-11-8fb6t785"
+    assert stu[0]["id"] == "nmdc:sty-11-8fb6t785"
 
 
 def test_find_study_by_filter():

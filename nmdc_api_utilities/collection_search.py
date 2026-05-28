@@ -3,13 +3,11 @@
 import json
 import logging
 import re
-from typing import Literal, Optional, cast
+from typing import Optional
 
-import pandas as pd
 import requests
 
 from nmdc_api_utilities.config import API_BASE_URL
-from nmdc_api_utilities.data_processing import DataProcessing
 from nmdc_api_utilities.decorators import has_deprecated_parameter
 from nmdc_api_utilities.nmdc_search import NMDCSearch
 
@@ -55,8 +53,7 @@ class CollectionSearch(NMDCSearch):
         max_page_size: int = 100,
         fields: str = "",
         all_pages: bool = True,
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """
         Retrieve records from the collection via the NMDC API.
 
@@ -70,14 +67,10 @@ class CollectionSearch(NMDCSearch):
             The fields to return. An empty string will return all fields.
         all_pages
             True to return all pages. False to return only the first page.
-        shape
-            The shape of the returned data. If "records", the data will be returned as a list of dictionaries,
-            where each dictionary is a record. If "dataframe", the data will be returned as a pandas dataframe.
-
         Returns
         -------
-        list[dict] | pd.DataFrame
-            A list of dictionaries or a pandas dataframe containing the records.
+        list[dict]
+            A list of dictionaries containing the records.
 
         Raises
         ------
@@ -85,10 +78,6 @@ class CollectionSearch(NMDCSearch):
             If the API request fails.
 
         """
-        if shape not in ["records", "dataframe"]:
-            raise ValueError(
-                f"Invalid shape input: {shape}\n Valid inputs: 'records' or 'dataframe'"
-            )
         url = f"{self.api_base_url}/nmdcschema/{self.collection_name}"
         params: dict[str, QueryParamValue] = {
             "filter": filter,
@@ -117,8 +106,6 @@ class CollectionSearch(NMDCSearch):
                 "resources"
             ]
 
-        if shape == "dataframe":
-            results = pd.DataFrame(results)
         return results
 
     def get_record_by_filter(
@@ -127,8 +114,7 @@ class CollectionSearch(NMDCSearch):
         max_page_size: int = 25,
         fields: str = "",
         all_pages: bool = True,
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """
         Retrieve a record via the NMDC API using a specified filter.
 
@@ -145,17 +131,13 @@ class CollectionSearch(NMDCSearch):
             Example: "id,name,description,url,type"
         all_pages
             True to return all pages. False to return only the first page.
-        shape
-            The shape of the returned data. If "records", the data will be returned as a list of dictionaries,
-            where each dictionary is a record. If "dataframe", the data will be returned as a pandas dataframe.
-
         Returns
         -------
-        list[dict] | pd.DataFrame
-            A list of dictionaries or a pandas dataframe containing the records.
+        list[dict]
+            A list of dictionaries containing the records.
 
         """
-        results = self.get_records(filter, max_page_size, fields, all_pages, shape)
+        results = self.get_records(filter, max_page_size, fields, all_pages)
         return results
 
     def get_record_by_attribute(
@@ -166,8 +148,7 @@ class CollectionSearch(NMDCSearch):
         fields: str = "",
         all_pages: bool = True,
         exact_match: bool = False,
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """
         Retrieve a record via the NMDC API by a specific attribute's value.
 
@@ -187,30 +168,54 @@ class CollectionSearch(NMDCSearch):
             Whether the attribute value should be matched exactly or partially.
             Used to determine if the inputted attribute value is an exact match or a partial match.
             Default is False, meaning the user does not need to input an exact match.
-        shape
-            The shape of the returned data. If "records", the data will be returned as a list of dictionaries,
-            where each dictionary is a record. If "dataframe", the data will be returned as a pandas dataframe.
+        Returns
+        -------
+        list[dict]
+            A list of dictionaries containing the records.
+
+        """
+        filter = self.build_filter(
+            attributes={attribute_name: attribute_value},
+            exact_match=exact_match,
+        )
+
+        logging.debug(f"get_record_by_attribute Filter: {filter}")
+        results = self.get_records(filter, max_page_size, fields, all_pages)
+        return results
+
+    def build_filter(
+        self, attributes: dict[str, str], exact_match: bool = False
+    ) -> str:
+        """
+        Build a MongoDB-style query filter string from one or more attributes.
+
+        The resulting string will be compatible with the `filter` parameter
+        of various NMDC API endpoints.
+
+        Parameters
+        ----------
+        attributes
+            Dictionary of attribute names and their corresponding values.
+        exact_match
+            Whether attribute values should be exact (i.e. case sensitive)
+            or inexact (i.e. case insensitive) matches.
 
         Returns
         -------
-        list[dict] | pd.DataFrame
-            A list of dictionaries or a pandas dataframe containing the records.
-
+        str
+            A string representing the MongoDB filter.
         """
-
+        filter_dict: dict[str, str | dict[str, str]] = {}
         if exact_match:
-            filter = f'{{"{attribute_name}":"{attribute_value}"}}'
+            for attribute_name, attribute_value in attributes.items():
+                filter_dict[attribute_name] = attribute_value
         else:
-            # escape special characters - mongo db filters require special characters to be double escaped ex. GC\\-MS \\(2009\\)
-            escaped_value = re.sub(r"([\W])", r"\\\\\1", attribute_value)
-            filter = (
-                f'{{"{attribute_name}":{{"$regex":"{escaped_value}","$options":"i"}}}}'
-            )
-        logging.debug(f"get_record_by_attribute Filter: {filter}")
-        results = self.get_records(
-            filter, max_page_size, fields, all_pages, shape=shape
-        )
-        return results
+            for attribute_name, attribute_value in attributes.items():
+                # escape special characters - mongo db filters require special characters to be double escaped ex. GC\\-MS \\(2009\\)
+                escaped_value = re.sub(r"([\W])", r"\\\1", attribute_value)
+                filter_dict[attribute_name] = {"$regex": escaped_value, "$options": "i"}
+
+        return json.dumps(filter_dict, separators=(",", ":"))
 
     @has_deprecated_parameter("collection_id", reason="Use ``record_id`` instead.")
     def get_record_by_id(
@@ -219,8 +224,7 @@ class CollectionSearch(NMDCSearch):
         max_page_size: int = 100,
         fields: str = "",
         collection_id: Optional[str] = None,
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """
         Retrieve a record from the collection via the NMDC API using a specified ID.
 
@@ -234,14 +238,11 @@ class CollectionSearch(NMDCSearch):
             The fields to return. Default is all fields.
         collection_id:
             The id of the record to retrieve from the collection. This parameter is deprecated and will be removed in a future version. Please use record_id instead.
-        shape
-            The shape of the returned data. If "records", the data will be returned as a list of dictionaries,
-            where each dictionary is a record. If "dataframe", the data will be returned as a pandas dataframe.
-
         Returns
         -------
-        list[dict] | pd.DataFrame
-            A list of dictionaries or a pandas dataframe containing the records.
+        list[dict]
+            A list containing the record. The API typically returns a single dictionary for this
+            endpoint, and this method normalizes that response into a single-item list.
 
         Raises
         ------
@@ -286,11 +287,8 @@ class CollectionSearch(NMDCSearch):
                 f"API request response: {response.json()}\n API Status Code: {response.status_code}"
             )
         results = response.json()
-        if shape == "dataframe":
-            if isinstance(results, dict):
-                results = pd.DataFrame([results])
-            else:
-                results = pd.DataFrame(results)
+        if isinstance(results, dict):
+            return [results]
         return results
 
     def check_ids_exist(
@@ -325,7 +323,7 @@ class CollectionSearch(NMDCSearch):
                 f"check_ids_exist is not supported for the {self.collection_name} collection"
             )
 
-        # chunk the input list of IDs into smaller lists of 100 IDs each
+        # chunk the input list of IDs into smaller lists (each of size `chunk_size`)
         # to avoid the maximum URL length limit
         ids_test = list(set(ids))
         for i in range(0, len(ids_test), chunk_size):
@@ -337,9 +335,7 @@ class CollectionSearch(NMDCSearch):
                 filter=filter_json_string,
                 max_page_size=len(chunk),
                 fields="id",
-                shape="records",
             )
-            results = cast(list[dict], results)
             if len(results) != len(chunk) and return_missing_ids:
                 missing_ids = list(
                     set(chunk) - set([record["id"] for record in results])
@@ -355,8 +351,7 @@ class CollectionSearch(NMDCSearch):
         search_field: str,
         chunk_size: int = 100,
         fields: str = "",
-        shape: Literal["records", "dataframe"] = "records",
-    ) -> list[dict] | pd.DataFrame:
+    ) -> list[dict]:
         """
         Get a batch of records from the collection that relate to input IDs.
 
@@ -374,14 +369,10 @@ class CollectionSearch(NMDCSearch):
             The number of IDs to get in each query.
         fields
             The fields to return. If empty or not provided, all fields are returned.
-        shape
-            The shape of the returned data. If "records", the data will be returned as a list of dictionaries,
-            where each dictionary is a record. If "dataframe", the data will be returned as a pandas dataframe.
-
         Returns
         -------
-        list[dict] | pd.DataFrame
-            A list of dictionaries or a pandas dataframe (still packed) containing the records that relate to the input IDs in
+        list[dict]
+            A list of dictionaries (still packed) containing the records that relate to the input IDs in
             the specified search field.
         """
         if not getattr(self, "supports_get_by_id", True):
@@ -389,20 +380,16 @@ class CollectionSearch(NMDCSearch):
                 f"get_record_by_id is not supported for the {self.collection_name} collection"
             )
 
-        dp = DataProcessing()
         results: list[dict] = []
         id_list = list(set(id_list))
-        chunks = dp.split_list(input_list=id_list, chunk_size=chunk_size)
-        for chunk in chunks:
+        for i in range(0, len(id_list), chunk_size):
+            chunk = id_list[i : i + chunk_size]
             sanitized_chunk = json.dumps(chunk)
             filter = f'{{"{search_field}": {{"$in": {sanitized_chunk}}}}}'
             res = self.get_records(
                 filter=filter, max_page_size=len(chunk), fields=fields, all_pages=True
             )
-            res = cast(list[dict], res)
             results += res
-        if shape == "dataframe":
-            return pd.DataFrame(results)
         return results
 
 
