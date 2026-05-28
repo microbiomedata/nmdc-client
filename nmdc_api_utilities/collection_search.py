@@ -187,14 +187,18 @@ class CollectionSearch(NMDCSearch):
         self, attributes: dict[str, str], exact_match: bool = False
     ) -> str:
         """
-        Build a MongoDB filter string from one or more attributes.
+        Build a MongoDB-style query filter string from one or more attributes.
+
+        The resulting string will be compatible with the `filter` parameter
+        of various NMDC API endpoints.
 
         Parameters
         ----------
         attributes
             Dictionary of attribute names and their corresponding values.
         exact_match
-            Whether attribute values should be exact matches.
+            Whether attribute values should be exact (i.e. case sensitive)
+            or inexact (i.e. case insensitive) matches.
 
         Returns
         -------
