@@ -25,7 +25,11 @@ class TestCollection(unittest.TestCase):
         )
         assert len(results) == 10
 
-    def test_shape_parameter_removed(self):
+    def test_shape_parameter_does_not_exist(self):
+        """
+        Test whether specific methods (still) have a parameter named `shape`.
+        """
+
         collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
         with pytest.raises(TypeError):
             collection.get_records(shape="records")
