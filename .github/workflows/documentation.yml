@@ -27,6 +27,9 @@ jobs:
           echo "Python package versions:"
           uv pip freeze
       - name: Sphinx build
+        # References:
+        # - https://www.sphinx-doc.org/en/master/man/sphinx-build.html#cmdoption-sphinx-build-D (RE: `-D`)
+        # - https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release (RE: `release`)
         run: |
           SHORT_HASH=$(git rev-parse --short HEAD)
           REF_NAME="${{ github.ref_name }}"
