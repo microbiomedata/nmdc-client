@@ -200,41 +200,42 @@ that we want people to use instead.
 #### Our approach
 
 In this project, deprecating something involves making it so that: (a) Python displays a deprecation
-message whenever someone uses that thing; and (b) the Sphinx-generated documentation about that
+message whenever someone uses that thing; and (b) the MkDocs-generated documentation about that
 thing includes a deprecation message. A deprecation message looks something like this:
 
 > `foo` is deprecated. Use `bar` instead.
 
-To accomplish (a) and (b) for classes, methods, and functions, we use a third-party package named
-[Deprecated](https://deprecated.readthedocs.io/en/latest/).
+To accomplish (a) for classes, methods, and functions, we use a third-party package named
+[Deprecated](https://deprecated.readthedocs.io/en/latest/). To accomplish (b), we add a
+[Material for MkDocs admonition](https://squidfunk.github.io/mkdocs-material/reference/admonitions/)
+to the thing's docstring.
 
 To accomplish (a) and (b) for function and method parameters, we use a custom decorator called
 `has_deprecated_parameter`. That's because, while the third-party `Deprecated` package does have
 a decorator that designates a parameter as being deprecated, that decorator does not add
-a note to the Sphinx docs.
+a note to the rendered docs.
 
 #### How to deprecate things
 
-To deprecate a class, method, or function, follow the steps shown in the documentation of the
-[deprecated.sphinx](https://deprecated.readthedocs.io/en/latest/sphinx_deco.html#using-the-sphinx-decorators) module; for example:
+To deprecate a class, method, or function, apply the
+[deprecated](https://deprecated.readthedocs.io/en/latest/) decorator (which makes Python display a
+runtime warning) and add a `!!! warning "Deprecated"` admonition to its docstring (which makes the
+documentation website display a note); for example:
 
 ```py
-from deprecated.sphinx import deprecated
+from deprecated import deprecated
 
 
 @deprecated(version="0.2.0", reason="Use ``get_geographical_location`` instead.")
 def get_location(name: str, region: str | None, region_id: str) -> Location:
+    """
+    Get the location having the specified name, region, and region ID.
+
+    !!! warning "Deprecated"
+
+        Deprecated since version 0.2.0. Use `get_geographical_location` instead.
+    """
     pass
-
-
-@deprecated(version="0.2.0", reason="Use ``GeographicalLocation`` instead.")
-class Location:
-    def __init__(self, name: str, region: str | None, region_id: str):
-        pass
-
-    @deprecated(version="0.1.0", reason="Use ``get_nearby_geographical_locations`` instead.")
-    def get_nearby_locations(self, r: float | None, radius_km: float) -> list[Location]:
-        pass
 ```
 
 To deprecate a _parameter_ of a function or method, use our custom decorator as shown here:
@@ -266,28 +267,40 @@ both the function and some of its parameters).
 
 ### Previewing user documentation
 
-We use [Sphinx](https://www.sphinx-doc.org/en/master/) to generate user documentation. Our Sphinx
-configuration files and static assets are located in the `docs/` directory.
+We use [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) to generate user
+documentation, matching the styling of the other NMDC documentation websites linked from
+[docs.microbiomedata.org](https://docs.microbiomedata.org/). Our MkDocs configuration file is
+`mkdocs.yml` (in the root directory of the repository) and the documentation source files and
+static assets are located in the `docs/` directory.
 
 In production, our user documentation is generated via a GitHub Actions workflow
-(i.e. `documentation.yml`) that builds the documentation website and deploys it to GitHub Pages,
+(i.e. `documentation.yml`) that builds the documentation website and uses
+[mike](https://github.com/jimporter/mike) to deploy it — as a versioned snapshot — to GitHub Pages,
 where it can be accessed by users.
 
 In development, you can build and preview the documentation website locally by running the following
 command:
 
 ```sh
-uv run --group docs sphinx-autobuild --watch nmdc_client docs build/html
+uv run --group docs mkdocs serve --watch nmdc_client
 ```
 
 That will do the following: (a) install the packages listed in the `docs` group in `pyproject.toml`,
-(b) use Sphinx to build the documentation website, (c) launch a web server that serves the
+(b) use MkDocs to build the documentation website, (c) launch a web server that serves the
 documentation website, and (d) **automatically rebuild** the documentation website whenever any
-[documentation or code](https://github.com/sphinx-doc/sphinx-autobuild#relevant-sphinx-bugs) file
-within either `nmdc_client/` or `docs/` changes.
+file within either `nmdc_client/` or `docs/` changes.
 
 The documentation website will be accessible at the URL shown on the console (usually
 [`http://127.0.0.1:8000`](http://127.0.0.1:8000)).
+
+> By default, building the documentation website involves executing the cells of the Jupyter
+> notebooks in the `docs/` directory, which can take a few minutes (the notebooks access the
+> Internet). You can skip notebook execution — for faster rebuilds while iterating — by setting an
+> environment variable, like this:
+>
+> ```sh
+> NMDC_CLIENT_DOCS_EXECUTE_NOTEBOOKS=false uv run --group docs mkdocs serve --watch nmdc_client
+> ```
 
 When you're done previewing the documentation website, you can terminate the web server by pressing
 `^C`.
