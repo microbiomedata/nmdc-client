@@ -305,6 +305,40 @@ The documentation website will be accessible at the URL shown on the console (us
 When you're done previewing the documentation website, you can terminate the web server by pressing
 `^C`.
 
+#### Previewing multi-version docs site locally
+
+You can preview the multi-version docs site locally, without affecting the site hosted on GitHub Pages.
+
+**Build** the site locally with `mike`, using a temporary branch named `temp-docs` (or any other name you want,
+as long as you modify the commands below accordingly):
+
+> Important: Do not include the `--push` option in any `mike` commands here.
+
+```sh
+# Build some mock "older" versions, so you can preview the version selector.
+uv run --group docs mike deploy --branch temp-docs --ignore-remote-status 0.0.0 some-alias
+uv run --group docs mike deploy --branch temp-docs --ignore-remote-status 0.0.1 other-alias
+
+# Build the "latest" version.
+uv run --group docs mike deploy --branch temp-docs --ignore-remote-status --update-aliases 0.0.2 latest
+
+# Designate the "latest" version as the default version.
+uv run --group docs mike set-default --branch temp-docs --ignore-remote-status latest
+```
+
+**Serve** that temporary branch locally (at [`http://127.0.0.1:8000`](http://127.0.0.1:8000)):
+
+```sh
+uv run --group docs mike serve --branch temp-docs --ignore-remote-status
+```
+
+When you're done previewing the site, you can press `^C` to **terminate** the server;
+then, **delete** the temporary branch (so it doesn't get in the way the next time you go through these steps):
+
+```sh
+git branch --delete --force temp-docs
+```
+
 #### Major refactoring
 
 Major refactoring should be scoped with the main developers of the repo.
