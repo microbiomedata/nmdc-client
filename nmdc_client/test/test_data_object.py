@@ -5,7 +5,6 @@ from nmdc_client import DataObjectSearch
 from nmdc_client.config import API_BASE_URL
 
 logger = logging.getLogger(__name__)
-logger.basicConfig(level=logging.DEBUG)
 
 
 def test_get_data_objects_for_study():

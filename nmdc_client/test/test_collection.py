@@ -9,7 +9,6 @@ from nmdc_client.collection_search import CollectionSearch
 from nmdc_client.config import API_BASE_URL
 
 logger = logging.getLogger(__name__)
-logger.basicConfig(level=logging.DEBUG)
 
 
 class TestCollection(unittest.TestCase):
