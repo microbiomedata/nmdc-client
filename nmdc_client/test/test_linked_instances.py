@@ -5,7 +5,8 @@ from itertools import chain
 from nmdc_client import NMDCSearch
 from nmdc_client.config import API_BASE_URL
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.basicConfig(level=logging.DEBUG)
 
 
 def test_get_linked_instance():

@@ -4,7 +4,8 @@ import logging
 from nmdc_client import StudySearch
 from nmdc_client.config import API_BASE_URL
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.basicConfig(level=logging.DEBUG)
 
 
 def test_find_study_by_attribute():
@@ -13,7 +14,7 @@ def test_find_study_by_attribute():
         "name",
         "Lab enrichment of tropical soil microbial communities from Luquillo Experimental Forest, Puerto Rico",
     )
-    logging.debug("Test result:", stu)
+    logger.debug("Test result:", stu)
     assert len(stu) > 0
     assert (
         stu[0]["name"]

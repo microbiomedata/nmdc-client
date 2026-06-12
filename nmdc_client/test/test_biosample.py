@@ -4,7 +4,8 @@ import logging
 from nmdc_client import BiosampleSearch
 from nmdc_client.config import API_BASE_URL
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.basicConfig(level=logging.DEBUG)
 
 
 def test_find_biosample_by_id():
@@ -16,7 +17,7 @@ def test_find_biosample_by_id():
 
 def test_logger():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
-    logging.basicConfig(level=logging.DEBUG)
+    logger.basicConfig(level=logging.DEBUG)
     results = biosample.get_record_by_id("nmdc:bsm-11-002vgm56")
 
 
@@ -31,7 +32,7 @@ def test_biosample_by_attribute():
     results = biosample.get_record_by_attribute(
         "id", "nmdc:bsm-11-006pnx90", exact_match=False
     )
-    logging.debug(results)
+    logger.debug(results)
     assert len(results) == 1
 
 
