@@ -16,8 +16,8 @@ def test_find_biosample_by_id():
 
 def test_logger():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
-    logger.basicConfig(level=logging.DEBUG)
-    results = biosample.get_record_by_id("nmdc:bsm-11-002vgm56")
+    logging.basicConfig(level=logging.DEBUG)
+    _ = biosample.get_record_by_id("nmdc:bsm-11-002vgm56")
 
 
 def test_biosample_by_filter():
