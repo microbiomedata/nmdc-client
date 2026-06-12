@@ -371,6 +371,17 @@ To run a specific test by name:
 uv run pytest nmdc_client/test/test_collection.py::TestCollection::test_get_records
 ```
 
+To [configure pytest](https://docs.pytest.org/en/7.1.x/how-to/logging.html#how-to-manage-logging) to display
+`DEBUG`-level log messages emitted during failing tests, use the `--log-level` option:
+
+```sh
+uv run pytest --log-level DEBUG
+```
+
+> Note: This only affects log messages that were emitted during tests that ended up _failing_. If you want to see
+> `DEBUG`-level log messages for _all_ tests, you can use `--log-cli-level` instead of `--log-level`. In that case,
+> the log messages will also be interleaved with the test output (instead of being displayed after all tests have run).
+
 <a id="the-api_base_url-variable"></a>
 
 ### The `api_base_url` variable
