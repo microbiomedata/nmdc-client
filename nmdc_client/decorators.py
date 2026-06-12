@@ -59,23 +59,23 @@ def has_deprecated_parameter(
 
     This decorator is an enhanced variant of the `deprecated_params` decorator from the third-party
     `Deprecated` package. That decorator has a shortcoming, which is that it does not modify the
-    Sphinx docs. This decorator _does_ modify the Sphinx docs.
+    docstring rendered in the user documentation. This decorator _does_ modify that docstring.
 
     Decorating a given function with this decorator will cause the following two things to happen:
 
     1. Whenever the function is invoked with the deprecated parameter, Python will display a warning.
-    2. The Sphinx documentation for the function will include a note about the deprecated parameter.
-       Note: We use the `.. admonition::` directive rather than the `.. deprecated::` directive to
-             add that note, because Sphinx displays the latter the same way as a deprecation message
-             about the entire _function_, and we don't want to imply that the entire _function_ is
-             deprecated. We use `.. admonition::` to achieve a distinct appearance.
+    2. The MkDocs-generated documentation for the function will include a note about the deprecated
+       parameter.
+       Note: We append a NumPy-style "Warnings" docstring section (rather than marking the entire
+             function as deprecated), because we don't want to imply that the entire _function_ is
+             deprecated. mkdocstrings renders that section as a "warning" admonition.
 
     Parameters
     ----------
     param_name:
         Name of the deprecated parameter.
     reason:
-        Explanation shown in the run-time warning and the Sphinx docs (e.g. "Use ``foo`` instead.").
+        Explanation shown in the run-time warning and the rendered docs (e.g. "Use ``foo`` instead.").
 
     Returns
     -------
@@ -106,16 +106,18 @@ def has_deprecated_parameter(
                 param_name_sanitized, reason=reason_sanitized
             )(class_or_func)
 
-        # Make the note for the Sphinx docs.
-        sphinx_note_lines = [
-            ".. admonition:: Deprecated parameter",
-            "",
-            f"   The ``{param_name_sanitized}`` parameter is deprecated.",
-            f"   {reason_sanitized}" if len(reason_sanitized) > 0 else "",
+        # Make the note for the rendered docs, as a NumPy-style "Warnings" docstring
+        # section, which mkdocstrings renders as a "warning" admonition.
+        # Reference: https://numpydoc.readthedocs.io/en/latest/format.html#warnings
+        docs_note_lines = [
+            "Warnings",
+            "--------",
+            f"The ``{param_name_sanitized}`` parameter is deprecated."
+            + (f" {reason_sanitized}" if len(reason_sanitized) > 0 else ""),
         ]
-        sphinx_note = "\n".join(sphinx_note_lines)
+        docs_note = "\n".join(docs_note_lines)
 
-        # Augment the decorated function's or class's docstring with the Sphinx note.
+        # Augment the decorated function's or class's docstring with the note.
         #
         # Note: We use `inspect.getdoc(x)` instead of `x.__doc__` because, unlike the latter, the
         #       former normalizes the indentation level of the docstring lines. This way, we don't
@@ -126,7 +128,7 @@ def has_deprecated_parameter(
         if not isinstance(original_docstring, str):
             original_docstring = ""
         decorated_class_or_func.__doc__ = (
-            original_docstring.rstrip() + "\n\n\n" + sphinx_note + "\n"
+            original_docstring.rstrip() + "\n\n\n" + docs_note + "\n"
         )
 
         # Return the decorated function, which is now decorated with the third-party `deprecated_params`

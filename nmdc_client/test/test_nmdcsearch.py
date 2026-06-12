@@ -4,7 +4,7 @@ import logging
 from nmdc_client import NMDCSearch
 from nmdc_client.config import API_BASE_URL
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def test_get_records_by_id():
@@ -25,14 +25,14 @@ def test_get_records_by_id():
 def test_get_schema_version():
     nmdc_client = NMDCSearch(api_base_url=API_BASE_URL)
     schema_version = nmdc_client.get_schema_version()
-    logging.debug(f"NMDC Schema Version: {schema_version}")
+    logger.debug(f"NMDC Schema Version: {schema_version}")
     assert isinstance(schema_version, str)
 
 
 def test_get_record_from_id():
     nmdc_client = NMDCSearch(api_base_url=API_BASE_URL)
     record = nmdc_client.get_record_from_id("nmdc:sty-11-8fb6t785", fields="id,name")
-    logging.debug(f"Record fetched from ID: {record}")
+    logger.debug(f"Record fetched from ID: {record}")
     assert record["id"] == "nmdc:sty-11-8fb6t785"
 
 

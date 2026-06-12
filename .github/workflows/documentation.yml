@@ -26,20 +26,19 @@ jobs:
           echo "Python version : $(uv run python --version)"
           echo "Python package versions:"
           uv pip freeze
-      - name: Sphinx build
-        # References:
-        # - https://www.sphinx-doc.org/en/master/man/sphinx-build.html#cmdoption-sphinx-build-D (RE: `-D`)
-        # - https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-release (RE: `release`)
-        run: |
-          SHORT_HASH=$(git rev-parse --short HEAD)
-          REF_NAME="${{ github.ref_name }}"
-          uv run sphinx-build -v docs build/html \
-            -D "release=${REF_NAME}+${SHORT_HASH}"
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+      - name: Build MkDocs site
+        # Validates the site (broken nav/links fail the build). Deployment is done
+        # by `mike` below, which runs its own build.
+        run: uv run mkdocs build --strict
+      - name: Deploy versioned docs to GitHub Pages
+        # `mike` deploys this release's docs to a version subdirectory on the `gh-pages`
+        # branch and updates the `latest` alias; Material for MkDocs renders a version
+        # selector in the site header.
+        # Docs: https://github.com/jimporter/mike
         if: ${{ github.event_name == 'release' }}
-        with:
-          publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/html
-          force_orphan: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages --depth=1 || true
+          uv run mike deploy --push --update-aliases "${{ github.ref_name }}" latest
+          uv run mike set-default --push latest

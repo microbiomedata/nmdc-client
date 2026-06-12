@@ -1,0 +1,106 @@
+# MkDocs / Material for MkDocs configuration.
+# Docs: https://www.mkdocs.org/user-guide/configuration/
+# Docs: https://squidfunk.github.io/mkdocs-material/
+
+site_name: NMDC Client Documentation
+site_author: National Microbiome Data Collaborative
+site_description: Documentation for nmdc-client, a Python client library for the NMDC Runtime API
+site_url: https://microbiomedata.github.io/nmdc-client/
+
+# Docs: https://squidfunk.github.io/mkdocs-material/setup/adding-a-git-repository/
+repo_url: https://github.com/microbiomedata/nmdc-client
+repo_name: microbiomedata/nmdc-client
+edit_uri: edit/main/docs/
+
+# This is the path (relative to this configuration file) to the directory
+# containing the documentation source files.
+docs_dir: docs
+
+copyright: "&copy; Copyright 2026, National Microbiome Data Collaborative"
+
+# Theme strategy copied from https://github.com/microbiomedata/nmdc-schema (default
+# Material theme + NMDC logo/favicon) so this site fits in with the other NMDC
+# documentation sites linked from https://docs.microbiomedata.org/.
+theme:
+  name: material
+  logo: _static/images/NMDC_logo.png
+  favicon: _static/images/favicon.ico
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+# Reference: https://www.mkdocs.org/user-guide/configuration/#nav
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start: usage.ipynb
+      - Using MongoDB Filters: filters.ipynb
+      - External Notebook Examples: example_usage.md
+  - Public API Reference:
+      - Core Search API: functions.md
+      - CollectionSearch Subclasses: public_subclasses.md
+  - Privileged API Reference:
+      - Privileged API: privileged_api.md
+
+extra:
+  # We use `mike` to deploy versioned documentation; Material for MkDocs renders
+  # a version selector in the site header.
+  # Docs: https://squidfunk.github.io/mkdocs-material/setup/setting-up-versioning/
+  version:
+    provider: mike
+
+extra_javascript:
+  # Make external links open in a new tab.
+  - _static/external_links.js
+
+markdown_extensions:
+  - admonition  # !!! note / !!! warning blocks (also used by deprecation notes)
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  # Render (and execute) Jupyter notebooks as documentation pages.
+  # Docs: https://github.com/danielfrg/mkdocs-jupyter
+  - mkdocs-jupyter:
+      # Execute notebook cells during the build so HTML includes cell output
+      # (parity with the previous `nbsphinx_execute = "always"` setting).
+      # Contributors can skip execution locally for faster rebuilds:
+      #   NMDC_CLIENT_DOCS_EXECUTE_NOTEBOOKS=false uv run mkdocs serve
+      execute: !ENV [NMDC_CLIENT_DOCS_EXECUTE_NOTEBOOKS, true]
+      # Name the kernel explicitly in case a notebook lacks kernelspec metadata.
+      kernel_name: python3
+      include_source: true  # adds a "Download notebook" link to each notebook page
+  # Generate API reference pages from docstrings and type hints.
+  # Docs: https://mkdocstrings.github.io/python/
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # Our docstrings are NumPy-style.
+            docstring_style: numpy
+            # Use runtime inspection (like Sphinx autodoc did) instead of static
+            # analysis, so docstring text injected at runtime by our deprecation
+            # decorators (see `nmdc_client/decorators.py`) appears in the docs.
+            force_inspection: true
+            # Document `__init__` parameters on the class itself (our classes put
+            # the Parameters section in the class docstring).
+            merge_init_into_class: true
+            show_root_heading: true       # show a heading for each `:::` block
+            show_root_full_path: false
+            show_bases: true              # parity with Sphinx `:show-inheritance:`
+            show_source: true             # parity with `sphinx.ext.viewcode`
+            show_if_no_docstring: true    # parity with Sphinx `:undoc-members:`
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            heading_level: 3
+            filters: ["!^_"]              # document public members only

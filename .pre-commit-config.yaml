@@ -24,7 +24,10 @@ repos:
         files: '.yaml$'
       - id: check-symlinks
       - id: check-yaml
-        exclude: '(.*-ci|ci/.+)\.yml$'
+        # Note: `mkdocs.yml` is excluded because it uses MkDocs-specific YAML tags
+        #       (e.g. `!ENV`) that this hook cannot parse. It is validated by
+        #       `mkdocs build --strict` in the `documentation.yml` workflow instead.
+        exclude: '(.*-ci|ci/.+)\.yml$|^mkdocs\.yml$'
       - id: detect-private-key
       - id: trailing-whitespace
 
@@ -84,10 +87,3 @@ repos:
           - types-requests==2.33.0.20260408
           - pandas-stubs==3.0.0.260204
           - types-Deprecated==1.3.1.20260508
-
-  # - repo: https://github.com/thclark/pre-commit-sphinx
-  #   rev: 0.0.1
-  #   hooks:
-  #     - id: build-docs
-  #       args: ['--cache-dir', 'docs/_build/doctrees', '--html-dir', 'docs/_build/html', '--source-dir', 'docs/source']
-  #       language_version: python3

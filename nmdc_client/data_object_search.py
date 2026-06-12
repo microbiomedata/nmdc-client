@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 import requests
-from deprecated.sphinx import deprecated
+from deprecated import deprecated
 
 from nmdc_client.collection_search import CollectionSearch
 from nmdc_client.config import API_BASE_URL
@@ -33,6 +33,13 @@ class DataObjectSearch(CollectionSearch):
         study_id: str,
         max_page_size: Optional[int] = None,
     ) -> list[dict]:
+        """
+        Deprecated alias for `get_data_objects_for_study`.
+
+        !!! warning "Deprecated"
+
+            Deprecated since version 0.7.0. Use `get_data_objects_for_study` instead.
+        """
         _ = max_page_size
         return self.get_data_objects_for_study(study_id)
 
