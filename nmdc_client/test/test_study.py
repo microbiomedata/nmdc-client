@@ -13,7 +13,7 @@ def test_find_study_by_attribute():
         "name",
         "Lab enrichment of tropical soil microbial communities from Luquillo Experimental Forest, Puerto Rico",
     )
-    logger.debug("Test result:", stu)
+    logger.debug(f"Record retrieved: {stu}")
     assert len(stu) > 0
     assert (
         stu[0]["name"]
