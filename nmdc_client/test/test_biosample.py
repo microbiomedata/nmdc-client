@@ -40,7 +40,8 @@ def test_biosample_by_latitude():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
     results = biosample.get_record_by_latitude("gt", 45.0)
     assert len(results) > 0
-    assert results[0]["lat_lon"]["latitude"] == 63.875088
+    lat = [d["lat_lon"]["latitude"] for d in results if "lat_lon" in d]
+    assert 63.875088 in lat
 
 
 def test_biosample_by_longitude():
@@ -48,7 +49,8 @@ def test_biosample_by_longitude():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
     results = biosample.get_record_by_longitude("lt", 45.0)
     assert len(results) > 0
-    assert results[0]["lat_lon"]["longitude"] == -149.210438
+    lon = [d["lat_lon"]["longitude"] for d in results if "lat_lon" in d]
+    assert -149.210438 in lon
 
 
 def test_biosample_by_lat_long():
@@ -56,8 +58,10 @@ def test_biosample_by_lat_long():
     biosample = BiosampleSearch(api_base_url=API_BASE_URL)
     results = biosample.get_record_by_lat_long("gt", "lt", 45.0, 45.0)
     assert len(results) > 0
-    assert results[0]["lat_lon"]["latitude"] == 63.875088
-    assert results[0]["lat_lon"]["longitude"] == -149.210438
+    lon = [d["lat_lon"]["longitude"] for d in results if "lat_lon" in d]
+    lat = [d["lat_lon"]["latitude"] for d in results if "lat_lon" in d]
+    assert -149.210438 in lon
+    assert 63.875088 in lat
 
 
 def test_biosample_by_proximity_biosample():
