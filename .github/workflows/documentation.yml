@@ -35,7 +35,7 @@ jobs:
         # branch and updates the `latest` alias; Material for MkDocs renders a version
         # selector in the site header.
         # Docs: https://github.com/jimporter/mike
-        if: ${{ github.event_name == 'release' }}
+        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
