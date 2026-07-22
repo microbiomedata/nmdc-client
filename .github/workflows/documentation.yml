@@ -1,6 +1,20 @@
 name: documentation
 
 on:
+  # A merged PR arrives here as a push to `main`, which republishes the `dev` docs.
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - CONTRIBUTING.md
+      - LICENSE
+      - README.md
+  # Validate — but never publish — docs changes before they land on `main`.
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths-ignore:
+      - CONTRIBUTING.md
+      - LICENSE
+      - README.md
   release:
     types: [ published ]
   workflow_dispatch:
@@ -8,10 +22,19 @@ on:
 permissions:
   contents: write
 
+# `mike` publishes by pushing a commit to `gh-pages`, so two runs deploying at the
+# same time would race and one would fail on a non-fast-forward push. Queue them
+# rather than cancelling: every deploy needs to land.
+concurrency:
+  group: documentation-deploy
+  cancel-in-progress: false
+
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+      # On a `release` event this checks out the release's tag, so the published
+      # docs describe the released code rather than whatever `main` holds.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
@@ -26,19 +49,39 @@ jobs:
           echo "Python version : $(uv run python --version)"
           echo "Python package versions:"
           uv pip freeze
+
+      # Validates the site (broken nav/links fail the build). This runs on every
+      # event, so a PR — or a manual dispatch from any branch — surfaces a broken
+      # docs build without publishing anything. Deployment below is done by
+      # `mike`, which runs its own build.
       - name: Build MkDocs site
-        # Validates the site (broken nav/links fail the build). Deployment is done
-        # by `mike` below, which runs its own build.
         run: uv run mkdocs build --strict
-      - name: Deploy versioned docs to GitHub Pages
-        # `mike` deploys this release's docs to a version subdirectory on the `gh-pages`
-        # branch and updates the `latest` alias; Material for MkDocs renders a version
-        # selector in the site header.
-        # Docs: https://github.com/jimporter/mike
-        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+
+      - name: Configure git for the `gh-pages` branch
+        if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin gh-pages --depth=1 || true
-          uv run mike deploy --push --update-aliases "${{ github.ref_name }}" latest
+
+      # Unreleased docs live at a single, fixed `dev` version that each merge
+      # overwrites. Note the version is the literal string `dev`, never
+      # `github.ref_name`: that expression is the *branch* on `push` and
+      # `workflow_dispatch` events, so using it here would add one version-selector
+      # entry per branch.
+      #
+      # `dev` is deliberately left unaliased, so it stays out of the way of the
+      # released docs.
+      - name: Deploy `dev` docs (merge into `main`)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          uv run mike deploy --push --title "dev (unreleased)" dev
+
+      # Each release gets its own permanent entry in the version selector, and
+      # becomes the version that the site root redirects to.
+      # Docs: https://github.com/jimporter/mike
+      - name: Deploy release docs
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          uv run mike deploy --push --update-aliases "${{ github.event.release.tag_name }}" latest
           uv run mike set-default --push latest
