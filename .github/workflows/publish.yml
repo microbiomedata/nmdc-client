@@ -14,6 +14,11 @@ jobs:
   prod_tests:
     name: Check format and run tests
     uses: ./.github/workflows/prod_tests.yml
+    # Reusable workflows do NOT receive the caller's secrets by default, so
+    # without this the `CLIENT_ID` / `CLIENT_SECRET` used by the prod tests are
+    # empty and the authenticated `mint` test fails with AuthenticationError.
+    # Docs: https://docs.github.com/en/actions/using-workflows/reusing-workflows#passing-inputs-and-secrets-to-a-reusable-workflow
+    secrets: inherit
   build:
     name: Build package
     # This job depends upon other jobs succeeding.
