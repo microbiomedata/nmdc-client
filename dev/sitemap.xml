@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/example_usage/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/filters/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/functions/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/privileged_api/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/public_subclasses/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+    <url>
+         <loc>https://microbiomedata.github.io/nmdc-client/dev/usage/</loc>
+         <lastmod>2026-07-23</lastmod>
+    </url>
+</urlset>
