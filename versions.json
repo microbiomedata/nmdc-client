@@ -1,17 +1,5 @@
 [
   {
-    "version": "main",
-    "title": "main",
-    "aliases": [
-      "latest"
-    ]
-  },
-  {
-    "version": "add_wfd_for_docs",
-    "title": "add_wfd_for_docs",
-    "aliases": []
-  },
-  {
     "version": "dev",
     "title": "dev (unreleased)",
     "aliases": []
