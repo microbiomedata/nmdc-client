@@ -10,6 +10,32 @@ A library designed to simplify various research tasks for users looking to lever
 - 🎨 **Optional extras**: Visualization support via matplotlib
 - 🔐 **Authentication**: Built-in OAuth2 support for protected endpoints
 
+## Agent skills
+
+The `adding-cli-and-docs` branch publishes `gff-analysis` and
+`enrichment-analysis`. These skills are not present on the current `main` branch
+of `microbiomedata/nmdc-client` (formerly `nmdc_api_utilities`), so use the explicit
+branch URL with the [Skills CLI](https://skills.sh/docs/cli).
+
+With Node.js and npm installed, run from your target project:
+
+```bash
+# List the branch's skills without installing
+npx skills add https://github.com/microbiomedata/nmdc-client/tree/adding-cli-and-docs/nmdc-skills --list
+
+# Install one skill for Claude Code in the current project
+npx skills add https://github.com/microbiomedata/nmdc-client/tree/adding-cli-and-docs/nmdc-skills --skill gff-analysis -a claude-code
+```
+
+Use `-a codex` to target Codex instead, or omit `-a` to choose agents.
+Installation is project-scoped by default; add `-g` for a user-wide install
+available across projects. The skills describe tools from this development
+branch; install those tools and configure API access separately.
+
+This installs skill files, without registering a Claude plugin or its hooks,
+MCP servers, or plugin commands. See the [skills README](nmdc-skills/README.md)
+for the existing local marketplace instructions.
+
 # Usage
 
 ## Command-Line Interface
