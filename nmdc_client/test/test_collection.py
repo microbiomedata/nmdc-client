@@ -2,6 +2,7 @@
 import json
 import logging
 import unittest
+from unittest.mock import patch
 
 import pytest
 
@@ -145,3 +146,34 @@ class TestCollection(unittest.TestCase):
         collection = CollectionSearch("biosample_set", api_base_url=API_BASE_URL)
         results = collection.check_ids_exist(ids)
         assert results == True
+
+
+def test_get_records_defaults_to_including_superseded_and_failed_records():
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = {"resources": []}
+        mock_get.return_value.raise_for_status.return_value = None
+
+        collection = CollectionSearch(
+            "study_set", api_base_url="https://api-dev.microbiomedata.org"
+        )
+        collection.get_records(all_pages=False)
+
+        assert mock_get.call_args.kwargs["params"]["include_superseded"] is True
+        assert mock_get.call_args.kwargs["params"]["include_failed"] is True
+
+
+def test_get_records_can_omit_superseded_and_failed_records():
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = {"resources": []}
+        mock_get.return_value.raise_for_status.return_value = None
+
+        collection = CollectionSearch(
+            "study_set",
+            api_base_url="https://api-dev.microbiomedata.org",
+            include_superseded_records=False,
+            include_failed_records=False,
+        )
+        collection.get_records(all_pages=False)
+
+        assert mock_get.call_args.kwargs["params"]["include_superseded"] is False
+        assert mock_get.call_args.kwargs["params"]["include_failed"] is False

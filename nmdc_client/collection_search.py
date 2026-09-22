@@ -13,7 +13,7 @@ from nmdc_client.nmdc_search import NMDCSearch
 
 logger = logging.getLogger(__name__)
 
-QueryParamValue = str | bytes | int | float | None
+QueryParamValue = str | bytes | int | float | bool | None
 
 
 class OperationNotSupportedError(RuntimeError):
@@ -33,6 +33,12 @@ class CollectionSearch(NMDCSearch):
         The name of the collection to search within.
     api_base_url
         The base URL of an instance of the NMDC Runtime API. By default, this is the base URL of the production instance.
+    include_superseded_records
+        Whether to include superseded records in collection-search responses. Default is ``True`` to preserve the
+        client's historical behavior.
+    include_failed_records
+        Whether to include failed planned-process records in collection-search responses. Default is ``True`` to
+        preserve the client's historical behavior.
     """
 
     def __init__(
@@ -40,8 +46,12 @@ class CollectionSearch(NMDCSearch):
         collection_name: str,
         api_base_url: str = API_BASE_URL,
         env: str = "",
+        include_superseded_records: bool = True,
+        include_failed_records: bool = True,
     ):
         self.collection_name = collection_name
+        self.include_superseded_records = include_superseded_records
+        self.include_failed_records = include_failed_records
         super().__init__(
             api_base_url=api_base_url,
             env=env,
@@ -83,6 +93,8 @@ class CollectionSearch(NMDCSearch):
             "filter": filter,
             "max_page_size": max_page_size,
             "projection": fields,
+            "include_superseded": self.include_superseded_records,
+            "include_failed": self.include_failed_records,
         }
         try:
             response = requests.get(
