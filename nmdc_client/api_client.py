@@ -126,7 +126,7 @@ class NMDCAPIClient(ABC):
                 content_type="application/json",
             )
 
-            params = {
+            params: dict[str, str | bytes | int | float | bool | None] = {
                 "filter": filter,
                 "max_page_size": max_page_size,
                 "projection": fields,
