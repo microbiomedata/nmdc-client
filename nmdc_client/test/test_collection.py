@@ -218,7 +218,7 @@ def test_superseded_data_object_follows_include_flag():
 
 
 def test_failed_data_generation_follows_include_flag():
-    # nmdc:dgns-11-41509674 has qc_status fail. Prod still returns it when the flag is false.
+    # nmdc:dgns-11-41509674 has qc_status fail.
     assert FAILED_DATA_GENERATION in _record_ids(
         DataGenerationSearch(api_base_url=API_BASE_URL),
         FAILED_DATA_GENERATION,
