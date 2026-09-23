@@ -13,7 +13,18 @@ from nmdc_client.nmdc_search import NMDCSearch
 
 logger = logging.getLogger(__name__)
 
-QueryParamValue = str | bytes | int | float | None
+QueryParamValue = str | bytes | int | float | bool | None
+
+# Schema slot superseded_by is on DataObject and WorkflowExecution only.
+SUPERSEDED_COLLECTIONS = {"workflow_execution_set", "data_object_set"}
+# Schema slot qc_status (StatusEnum pass/fail) is on PlannedProcess.
+FAILED_COLLECTIONS = {
+    "workflow_execution_set",
+    "data_generation_set",
+    "material_processing_set",
+    "storage_process_set",
+    "collecting_biosamples_from_site_set",
+}
 
 
 class OperationNotSupportedError(RuntimeError):
@@ -33,6 +44,17 @@ class CollectionSearch(NMDCSearch):
         The name of the collection to search within.
     api_base_url
         The base URL of an instance of the NMDC Runtime API. By default, this is the base URL of the production instance.
+    include_superseded_records
+        Whether to include superseded records. Valid for ``workflow_execution_set`` and
+        ``data_object_set`` (schema slot ``superseded_by``). Default is ``True`` so those
+        collections keep the client's historical results. ``False`` on any other collection
+        raises ``ValueError``.
+    include_failed_records
+        Whether to include planned processes whose ``qc_status`` is ``fail``. Valid for
+        ``workflow_execution_set``, ``data_generation_set``, ``material_processing_set``,
+        ``storage_process_set``, and ``collecting_biosamples_from_site_set``. Default is
+        ``True`` so those collections keep the client's historical results. ``False`` on any
+        other collection raises ``ValueError``.
     """
 
     def __init__(
@@ -40,12 +62,36 @@ class CollectionSearch(NMDCSearch):
         collection_name: str,
         api_base_url: str = API_BASE_URL,
         env: str = "",
+        include_superseded_records: bool = True,
+        include_failed_records: bool = True,
     ):
         self.collection_name = collection_name
+        self.include_superseded_records = include_superseded_records
+        self.include_failed_records = include_failed_records
+        self._include_flag_params()
         super().__init__(
             api_base_url=api_base_url,
             env=env,
         )
+
+    def _include_flag_params(self) -> dict[str, bool]:
+        """Query params for the include flags this collection's schema class allows."""
+        params: dict[str, bool] = {}
+        if self.collection_name in SUPERSEDED_COLLECTIONS:
+            params["include_superseded"] = self.include_superseded_records
+        elif self.include_superseded_records is not True:
+            raise ValueError(
+                "include_superseded_records is only valid for "
+                f"{sorted(SUPERSEDED_COLLECTIONS)}"
+            )
+        if self.collection_name in FAILED_COLLECTIONS:
+            params["include_failed"] = self.include_failed_records
+        elif self.include_failed_records is not True:
+            raise ValueError(
+                "include_failed_records is only valid for "
+                f"{sorted(FAILED_COLLECTIONS)}"
+            )
+        return params
 
     def get_records(
         self,
@@ -83,6 +129,7 @@ class CollectionSearch(NMDCSearch):
             "filter": filter,
             "max_page_size": max_page_size,
             "projection": fields,
+            **self._include_flag_params(),
         }
         try:
             response = requests.get(
@@ -102,9 +149,14 @@ class CollectionSearch(NMDCSearch):
         results = response.json()["resources"]
         # otherwise, get all pages
         if all_pages:
-            results = self._get_all_pages(response, url, filter, max_page_size, fields)[
-                "resources"
-            ]
+            results = self._get_all_pages(
+                response,
+                url,
+                filter,
+                max_page_size,
+                fields,
+                extra_params=params,
+            )["resources"]
 
         return results
 

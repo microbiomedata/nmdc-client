@@ -7,6 +7,10 @@ import pytest
 
 from nmdc_client.collection_search import CollectionSearch
 from nmdc_client.config import API_BASE_URL
+from nmdc_client.data_generation_search import DataGenerationSearch
+from nmdc_client.data_object_search import DataObjectSearch
+from nmdc_client.study_search import StudySearch
+from nmdc_client.workflow_execution_search import WorkflowExecutionSearch
 
 logger = logging.getLogger(__name__)
 
@@ -145,3 +149,95 @@ class TestCollection(unittest.TestCase):
         collection = CollectionSearch("biosample_set", api_base_url=API_BASE_URL)
         results = collection.check_ids_exist(ids)
         assert results == True
+
+
+def test_include_flags_rejected_when_the_collection_has_no_such_records():
+    with pytest.raises(ValueError, match="include_superseded_records"):
+        CollectionSearch(
+            "study_set",
+            api_base_url=API_BASE_URL,
+            include_superseded_records=False,
+        )
+    with pytest.raises(ValueError, match="include_failed_records"):
+        CollectionSearch(
+            "data_object_set",
+            api_base_url=API_BASE_URL,
+            include_failed_records=False,
+        )
+    with pytest.raises(TypeError):
+        DataObjectSearch(api_base_url=API_BASE_URL, include_failed_records=False)
+    with pytest.raises(TypeError):
+        StudySearch(api_base_url=API_BASE_URL, include_superseded_records=False)
+
+
+def _record_ids(search, value, **kwargs):
+    return {
+        row["id"]
+        for row in search.get_record_by_attribute("id", value, fields="id", **kwargs)
+    }
+
+
+WORKFLOW_STEM = "nmdc:wfnom-11-x9tbwk91"
+SUPERSEDED_WORKFLOW = "nmdc:wfnom-11-x9tbwk91.1"
+CURRENT_WORKFLOW = "nmdc:wfnom-11-x9tbwk91.2"
+SUPERSEDED_DATA_OBJECTS = ("nmdc:dobj-11-002stx72", "nmdc:dobj-11-003x7710")
+FAILED_DATA_GENERATION = "nmdc:dgns-11-41509674"
+
+
+def test_workflow_execution_id_search_includes_superseded_record_by_default():
+    ids = _record_ids(WorkflowExecutionSearch(api_base_url=API_BASE_URL), WORKFLOW_STEM)
+    assert CURRENT_WORKFLOW in ids
+    assert SUPERSEDED_WORKFLOW in ids
+
+
+def test_superseded_workflow_execution_is_omitted_from_id_search():
+    ids = _record_ids(
+        WorkflowExecutionSearch(
+            api_base_url=API_BASE_URL,
+            include_superseded_records=False,
+        ),
+        WORKFLOW_STEM,
+    )
+    assert CURRENT_WORKFLOW in ids
+    assert SUPERSEDED_WORKFLOW not in ids
+
+
+def test_superseded_data_object_follows_include_flag():
+    # Prod still returns superseded data objects when the flag is false.
+    data_object_id = SUPERSEDED_DATA_OBJECTS[0]
+    assert data_object_id in _record_ids(
+        DataObjectSearch(api_base_url=API_BASE_URL),
+        data_object_id,
+        exact_match=True,
+    )
+    assert data_object_id not in _record_ids(
+        DataObjectSearch(api_base_url=API_BASE_URL, include_superseded_records=False),
+        data_object_id,
+        exact_match=True,
+    )
+
+
+def test_failed_data_generation_follows_include_flag():
+    # nmdc:dgns-11-41509674 has qc_status fail.
+    assert FAILED_DATA_GENERATION in _record_ids(
+        DataGenerationSearch(api_base_url=API_BASE_URL),
+        FAILED_DATA_GENERATION,
+        exact_match=True,
+    )
+    assert FAILED_DATA_GENERATION not in _record_ids(
+        DataGenerationSearch(api_base_url=API_BASE_URL, include_failed_records=False),
+        FAILED_DATA_GENERATION,
+        exact_match=True,
+    )
+
+
+def test_superseded_data_objects_span_pages():
+    search = DataObjectSearch(
+        api_base_url=API_BASE_URL, include_superseded_records=True
+    )
+    rows = search.get_record_by_filter(
+        json.dumps({"id": {"$in": list(SUPERSEDED_DATA_OBJECTS)}}),
+        max_page_size=1,
+        fields="id",
+    )
+    assert {row["id"] for row in rows} == set(SUPERSEDED_DATA_OBJECTS)

@@ -14,9 +14,15 @@ class DataGenerationSearch(CollectionSearch):
     Class to interact with the NMDC API to search for records within the ``data_generation_set`` collection.
     """
 
-    def __init__(self, api_base_url: str = API_BASE_URL, env: str = ""):
+    def __init__(
+        self,
+        api_base_url: str = API_BASE_URL,
+        env: str = "",
+        include_failed_records: bool = True,
+    ):
         super().__init__(
             collection_name="data_generation_set",
             api_base_url=api_base_url,
             env=env,
+            include_failed_records=include_failed_records,
         )
