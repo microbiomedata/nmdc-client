@@ -2,7 +2,7 @@
 import json
 import logging
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -153,13 +153,41 @@ def test_get_records_defaults_to_including_superseded_and_failed_records():
         mock_get.return_value.json.return_value = {"resources": []}
         mock_get.return_value.raise_for_status.return_value = None
 
-        collection = CollectionSearch(
-            "study_set", api_base_url="https://api-dev.microbiomedata.org"
-        )
+        collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
         collection.get_records(all_pages=False)
 
         assert mock_get.call_args.kwargs["params"]["include_superseded"] is True
         assert mock_get.call_args.kwargs["params"]["include_failed"] is True
+
+
+def test_get_records_forwards_include_flags_on_later_pages():
+    page_one = MagicMock()
+    page_one.raise_for_status.return_value = None
+    page_one.json.return_value = {
+        "resources": [{"id": "nmdc:wfnom-11-x9tbwk91.2"}],
+        "next_page_token": "next",
+    }
+    page_two = MagicMock()
+    page_two.raise_for_status.return_value = None
+    page_two.json.return_value = {"resources": [{"id": "nmdc:wfnom-11-x9tbwk91.1"}]}
+
+    with patch("requests.get", side_effect=[page_one, page_two]) as mock_get:
+        collection = CollectionSearch(
+            "workflow_execution_set",
+            api_base_url=API_BASE_URL,
+            include_superseded_records=False,
+            include_failed_records=False,
+        )
+        results = collection.get_records()
+
+    assert [row["id"] for row in results] == [
+        "nmdc:wfnom-11-x9tbwk91.2",
+        "nmdc:wfnom-11-x9tbwk91.1",
+    ]
+    continuation = mock_get.call_args_list[1].kwargs["params"]
+    assert continuation["include_superseded"] is False
+    assert continuation["include_failed"] is False
+    assert continuation["page_token"] == "next"
 
 
 def test_get_records_can_omit_superseded_and_failed_records():
@@ -169,7 +197,7 @@ def test_get_records_can_omit_superseded_and_failed_records():
 
         collection = CollectionSearch(
             "study_set",
-            api_base_url="https://api-dev.microbiomedata.org",
+            api_base_url=API_BASE_URL,
             include_superseded_records=False,
             include_failed_records=False,
         )

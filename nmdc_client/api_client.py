@@ -76,6 +76,7 @@ class NMDCAPIClient(ABC):
         max_page_size: int = 100,
         fields: str = "",
         access_token: Optional[str] = None,
+        extra_params: Optional[dict] = None,
     ):
         """
         Get all pages of data from the NMDC API. This is a helper function to get all pages of data from the NMDC API.
@@ -94,6 +95,9 @@ class NMDCAPIClient(ABC):
             The fields to return. Default is all fields.
         access_token: Optional[str]
             Optional access token to include in the API request.
+        extra_params: Optional[dict]
+            Query parameters from the first request, copied onto each continuation
+            request. ``page_token`` is set by this method.
 
         Returns
         -------
@@ -126,8 +130,10 @@ class NMDCAPIClient(ABC):
                 "filter": filter,
                 "max_page_size": max_page_size,
                 "projection": fields,
-                "page_token": next_page_token,
             }
+            if extra_params:
+                params.update(extra_params)
+            params["page_token"] = next_page_token
             try:
                 response = requests.get(url_prefix, headers=headers, params=params)
                 response.raise_for_status()
