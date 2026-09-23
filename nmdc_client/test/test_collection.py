@@ -6,8 +6,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from nmdc_client.collecting_biosamples_from_site_search import (
+    CollectingBiosamplesFromSiteSearch,
+)
 from nmdc_client.collection_search import CollectionSearch
 from nmdc_client.config import API_BASE_URL
+from nmdc_client.data_generation_search import DataGenerationSearch
+from nmdc_client.data_object_search import DataObjectSearch
+from nmdc_client.material_processing_search import MaterialProcessingSearch
+from nmdc_client.storage_process_search import StorageProcessSearch
+from nmdc_client.study_search import StudySearch
+from nmdc_client.workflow_execution_search import WorkflowExecutionSearch
 
 logger = logging.getLogger(__name__)
 
@@ -148,16 +157,55 @@ class TestCollection(unittest.TestCase):
         assert results == True
 
 
-def test_get_records_defaults_to_including_superseded_and_failed_records():
+def _request_params(client) -> dict:
     with patch("requests.get") as mock_get:
         mock_get.return_value.json.return_value = {"resources": []}
         mock_get.return_value.raise_for_status.return_value = None
+        client.get_records(all_pages=False)
+        return mock_get.call_args.kwargs["params"]
 
-        collection = CollectionSearch("study_set", api_base_url=API_BASE_URL)
-        collection.get_records(all_pages=False)
 
-        assert mock_get.call_args.kwargs["params"]["include_superseded"] is True
-        assert mock_get.call_args.kwargs["params"]["include_failed"] is True
+@pytest.mark.parametrize(
+    ("client", "expected"),
+    [
+        (
+            WorkflowExecutionSearch(api_base_url=API_BASE_URL),
+            {"include_superseded": True, "include_failed": True},
+        ),
+        (
+            DataObjectSearch(
+                api_base_url=API_BASE_URL, include_superseded_records=False
+            ),
+            {"include_superseded": False},
+        ),
+        (
+            DataGenerationSearch(
+                api_base_url=API_BASE_URL, include_failed_records=False
+            ),
+            {"include_failed": False},
+        ),
+        (
+            MaterialProcessingSearch(api_base_url=API_BASE_URL),
+            {"include_failed": True},
+        ),
+        (
+            StorageProcessSearch(api_base_url=API_BASE_URL),
+            {"include_failed": True},
+        ),
+        (
+            CollectingBiosamplesFromSiteSearch(api_base_url=API_BASE_URL),
+            {"include_failed": True},
+        ),
+        (StudySearch(api_base_url=API_BASE_URL), {}),
+    ],
+)
+def test_include_flags_follow_the_collection(client, expected):
+    params = _request_params(client)
+    for key in ("include_superseded", "include_failed"):
+        if key in expected:
+            assert params[key] is expected[key]
+        else:
+            assert key not in params
 
 
 def test_get_records_forwards_include_flags_on_later_pages():
@@ -190,18 +238,20 @@ def test_get_records_forwards_include_flags_on_later_pages():
     assert continuation["page_token"] == "next"
 
 
-def test_get_records_can_omit_superseded_and_failed_records():
-    with patch("requests.get") as mock_get:
-        mock_get.return_value.json.return_value = {"resources": []}
-        mock_get.return_value.raise_for_status.return_value = None
-
-        collection = CollectionSearch(
+def test_include_flags_rejected_when_the_collection_has_no_such_records():
+    with pytest.raises(ValueError, match="include_superseded_records"):
+        CollectionSearch(
             "study_set",
             api_base_url=API_BASE_URL,
             include_superseded_records=False,
+        )
+    with pytest.raises(ValueError, match="include_failed_records"):
+        CollectionSearch(
+            "data_object_set",
+            api_base_url=API_BASE_URL,
             include_failed_records=False,
         )
-        collection.get_records(all_pages=False)
-
-        assert mock_get.call_args.kwargs["params"]["include_superseded"] is False
-        assert mock_get.call_args.kwargs["params"]["include_failed"] is False
+    with pytest.raises(TypeError):
+        DataObjectSearch(api_base_url=API_BASE_URL, include_failed_records=False)
+    with pytest.raises(TypeError):
+        StudySearch(api_base_url=API_BASE_URL, include_superseded_records=False)
