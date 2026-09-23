@@ -255,3 +255,22 @@ def test_include_flags_rejected_when_the_collection_has_no_such_records():
         DataObjectSearch(api_base_url=API_BASE_URL, include_failed_records=False)
     with pytest.raises(TypeError):
         StudySearch(api_base_url=API_BASE_URL, include_superseded_records=False)
+
+
+def test_superseded_workflow_execution_is_omitted_from_id_search():
+    # nmdc:wfnom-11-x9tbwk91.1 is superseded by nmdc:wfnom-11-x9tbwk91.2.
+    # Prod still returns both ids, so this fails there until that Runtime release.
+    search = WorkflowExecutionSearch(
+        api_base_url=API_BASE_URL,
+        include_superseded_records=False,
+    )
+    ids = {
+        row["id"]
+        for row in search.get_record_by_attribute(
+            "id",
+            "nmdc:wfnom-11-x9tbwk91",
+            fields="id",
+        )
+    }
+    assert "nmdc:wfnom-11-x9tbwk91.2" in ids
+    assert "nmdc:wfnom-11-x9tbwk91.1" not in ids
