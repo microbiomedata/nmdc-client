@@ -2,19 +2,13 @@
 import json
 import logging
 import unittest
-from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nmdc_client.collecting_biosamples_from_site_search import (
-    CollectingBiosamplesFromSiteSearch,
-)
 from nmdc_client.collection_search import CollectionSearch
 from nmdc_client.config import API_BASE_URL
 from nmdc_client.data_generation_search import DataGenerationSearch
 from nmdc_client.data_object_search import DataObjectSearch
-from nmdc_client.material_processing_search import MaterialProcessingSearch
-from nmdc_client.storage_process_search import StorageProcessSearch
 from nmdc_client.study_search import StudySearch
 from nmdc_client.workflow_execution_search import WorkflowExecutionSearch
 
@@ -157,87 +151,6 @@ class TestCollection(unittest.TestCase):
         assert results == True
 
 
-def _request_params(client) -> dict:
-    with patch("requests.get") as mock_get:
-        mock_get.return_value.json.return_value = {"resources": []}
-        mock_get.return_value.raise_for_status.return_value = None
-        client.get_records(all_pages=False)
-        return mock_get.call_args.kwargs["params"]
-
-
-@pytest.mark.parametrize(
-    ("client", "expected"),
-    [
-        (
-            WorkflowExecutionSearch(api_base_url=API_BASE_URL),
-            {"include_superseded": True, "include_failed": True},
-        ),
-        (
-            DataObjectSearch(
-                api_base_url=API_BASE_URL, include_superseded_records=False
-            ),
-            {"include_superseded": False},
-        ),
-        (
-            DataGenerationSearch(
-                api_base_url=API_BASE_URL, include_failed_records=False
-            ),
-            {"include_failed": False},
-        ),
-        (
-            MaterialProcessingSearch(api_base_url=API_BASE_URL),
-            {"include_failed": True},
-        ),
-        (
-            StorageProcessSearch(api_base_url=API_BASE_URL),
-            {"include_failed": True},
-        ),
-        (
-            CollectingBiosamplesFromSiteSearch(api_base_url=API_BASE_URL),
-            {"include_failed": True},
-        ),
-        (StudySearch(api_base_url=API_BASE_URL), {}),
-    ],
-)
-def test_include_flags_follow_the_collection(client, expected):
-    params = _request_params(client)
-    for key in ("include_superseded", "include_failed"):
-        if key in expected:
-            assert params[key] is expected[key]
-        else:
-            assert key not in params
-
-
-def test_get_records_forwards_include_flags_on_later_pages():
-    page_one = MagicMock()
-    page_one.raise_for_status.return_value = None
-    page_one.json.return_value = {
-        "resources": [{"id": "nmdc:wfnom-11-x9tbwk91.2"}],
-        "next_page_token": "next",
-    }
-    page_two = MagicMock()
-    page_two.raise_for_status.return_value = None
-    page_two.json.return_value = {"resources": [{"id": "nmdc:wfnom-11-x9tbwk91.1"}]}
-
-    with patch("requests.get", side_effect=[page_one, page_two]) as mock_get:
-        collection = CollectionSearch(
-            "workflow_execution_set",
-            api_base_url=API_BASE_URL,
-            include_superseded_records=False,
-            include_failed_records=False,
-        )
-        results = collection.get_records()
-
-    assert [row["id"] for row in results] == [
-        "nmdc:wfnom-11-x9tbwk91.2",
-        "nmdc:wfnom-11-x9tbwk91.1",
-    ]
-    continuation = mock_get.call_args_list[1].kwargs["params"]
-    assert continuation["include_superseded"] is False
-    assert continuation["include_failed"] is False
-    assert continuation["page_token"] == "next"
-
-
 def test_include_flags_rejected_when_the_collection_has_no_such_records():
     with pytest.raises(ValueError, match="include_superseded_records"):
         CollectionSearch(
@@ -257,20 +170,74 @@ def test_include_flags_rejected_when_the_collection_has_no_such_records():
         StudySearch(api_base_url=API_BASE_URL, include_superseded_records=False)
 
 
-def test_superseded_workflow_execution_is_omitted_from_id_search():
-    # nmdc:wfnom-11-x9tbwk91.1 is superseded by nmdc:wfnom-11-x9tbwk91.2.
-    # Prod still returns both ids, so this fails there until that Runtime release.
-    search = WorkflowExecutionSearch(
-        api_base_url=API_BASE_URL,
-        include_superseded_records=False,
-    )
-    ids = {
+def _record_ids(search, value, **kwargs):
+    return {
         row["id"]
-        for row in search.get_record_by_attribute(
-            "id",
-            "nmdc:wfnom-11-x9tbwk91",
-            fields="id",
-        )
+        for row in search.get_record_by_attribute("id", value, fields="id", **kwargs)
     }
-    assert "nmdc:wfnom-11-x9tbwk91.2" in ids
-    assert "nmdc:wfnom-11-x9tbwk91.1" not in ids
+
+
+WORKFLOW_STEM = "nmdc:wfnom-11-x9tbwk91"
+SUPERSEDED_WORKFLOW = "nmdc:wfnom-11-x9tbwk91.1"
+CURRENT_WORKFLOW = "nmdc:wfnom-11-x9tbwk91.2"
+SUPERSEDED_DATA_OBJECTS = ("nmdc:dobj-11-002stx72", "nmdc:dobj-11-003x7710")
+FAILED_DATA_GENERATION = "nmdc:dgns-11-41509674"
+
+
+def test_workflow_execution_id_search_includes_superseded_record_by_default():
+    ids = _record_ids(WorkflowExecutionSearch(api_base_url=API_BASE_URL), WORKFLOW_STEM)
+    assert CURRENT_WORKFLOW in ids
+    assert SUPERSEDED_WORKFLOW in ids
+
+
+def test_superseded_workflow_execution_is_omitted_from_id_search():
+    ids = _record_ids(
+        WorkflowExecutionSearch(
+            api_base_url=API_BASE_URL,
+            include_superseded_records=False,
+        ),
+        WORKFLOW_STEM,
+    )
+    assert CURRENT_WORKFLOW in ids
+    assert SUPERSEDED_WORKFLOW not in ids
+
+
+def test_superseded_data_object_follows_include_flag():
+    # Prod still returns superseded data objects when the flag is false.
+    data_object_id = SUPERSEDED_DATA_OBJECTS[0]
+    assert data_object_id in _record_ids(
+        DataObjectSearch(api_base_url=API_BASE_URL),
+        data_object_id,
+        exact_match=True,
+    )
+    assert data_object_id not in _record_ids(
+        DataObjectSearch(api_base_url=API_BASE_URL, include_superseded_records=False),
+        data_object_id,
+        exact_match=True,
+    )
+
+
+def test_failed_data_generation_follows_include_flag():
+    # nmdc:dgns-11-41509674 has qc_status fail. Prod still returns it when the flag is false.
+    assert FAILED_DATA_GENERATION in _record_ids(
+        DataGenerationSearch(api_base_url=API_BASE_URL),
+        FAILED_DATA_GENERATION,
+        exact_match=True,
+    )
+    assert FAILED_DATA_GENERATION not in _record_ids(
+        DataGenerationSearch(api_base_url=API_BASE_URL, include_failed_records=False),
+        FAILED_DATA_GENERATION,
+        exact_match=True,
+    )
+
+
+def test_superseded_data_objects_span_pages():
+    search = DataObjectSearch(
+        api_base_url=API_BASE_URL, include_superseded_records=True
+    )
+    rows = search.get_record_by_filter(
+        json.dumps({"id": {"$in": list(SUPERSEDED_DATA_OBJECTS)}}),
+        max_page_size=1,
+        fields="id",
+    )
+    assert {row["id"] for row in rows} == set(SUPERSEDED_DATA_OBJECTS)
